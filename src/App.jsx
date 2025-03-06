@@ -13,7 +13,9 @@ function App() {
   const [smells, setSmells] = useState([]); //Stato per gli smells assegnati
   const [arcs, setArcs] = useState([]); //Stato per memorizzare gli archi
   const [serviceNode1, setServiceNode1] = useState(''); //nodi collegati dagli archi
-  const [serviceNode2, setServiceNode2] = useState('');
+  const [serviceNode2, setServiceNode2] = useState(''); 
+  const [currentSmells, setCurrentSmells] = useState(CurrentSmells); //smells disponibili
+  const [newSmell, setNewSmell] = useState(''); // stato per il nuovo smell
 
   //Funzione per generare un nuovo nodo
   const generateRandomRectangle = () => {
@@ -41,6 +43,7 @@ function App() {
     };
 
     setRectangles((prevRectangles) => [...prevRectangles, newRectangle]);
+    setServiceName('');
   };
 
   const handleSmellsChange = (event) => {
@@ -52,6 +55,11 @@ function App() {
         return prevProperties.filter((smells) => smells !== name); // Rimuovi la proprietà deselezionata
       }
     });
+  };
+
+  const handleRemoveSmell = (smell) => {
+    setCurrentSmells((prevSmells) => prevSmells.filter((s) => s !== smell));
+    setSmells((prevProperties) => prevProperties.filter((s) => s !== smell));
   };
 
   const handleNameChange = (event) => {
@@ -117,7 +125,8 @@ function App() {
     const dataToSave = {
       rectangles: rectangles,
       teamColors: TeamColors,
-      arcs: arcs
+      arcs: arcs,
+      currentSmells: currentSmells
     };
   
     const blob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: 'application/json' });
@@ -142,6 +151,7 @@ function App() {
           setRectangles(loadedData.rectangles || []);
           setArcs(loadedData.arcs || []);
           TeamColors = loadedData.teamColors || {};
+          setCurrentSmells(loadedData.currentSmells || CurrentSmells);
         } catch (error) {
           console.error('Error reading JSON file:', error);
         }
@@ -151,82 +161,108 @@ function App() {
     }
   };
 
+  // Funzione per aggiungere un nuovo smell
+  const handleAddSmell = () => {
+    if (newSmell && !currentSmells.includes(newSmell)) {
+      setCurrentSmells((prevSmells) => [...prevSmells, newSmell]);
+      setNewSmell('');
+    }
+  };
+
   return (
-    <div>
-      <div>
-        <h2>New microservice</h2>
-        <input
-          type="text"
-          placeholder="Service Name"
-          value={serviceName}
-          onChange={handleNameChange} // Gestisce il cambiamento del nome
-        />
-        <br/><br/>
-        <input
-          type="text"
-          placeholder="Team Name"
-          value={TeamName}
-          onChange={handleTeamChange} // Gestisce il cambiamento del nome
-        />
-        <br/>
+    <div style={{ display: 'flex' }}>
+      <div style={{ flex: 1 }}>
         <div>
-          <h3>Select Smells</h3>
-          {CurrentSmells.map((smells) => (
-            <label key={smells}>
-              <input
-                type="checkbox"
-                name={smells}
-                onChange={handleSmellsChange}
-              />
-              {smells}
-              <br/>
-            </label>
+          <h2>New microservice</h2>
+          <input
+            type="text"
+            placeholder="Service Name"
+            value={serviceName}
+            onChange={handleNameChange} // Gestisce il cambiamento del nome
+          />
+          <br /><br />
+          <input
+            type="text"
+            placeholder="Team Name"
+            value={TeamName}
+            onChange={handleTeamChange} // Gestisce il cambiamento del nome
+          />
+          <br />
+          <br />
+          <button onClick={generateRandomRectangle}>New microservice</button>
+        </div>
+        <br /><br />
+        <div>
+          <h2>New link</h2>
+          <input
+            type="text"
+            placeholder="Service 1"
+            value={serviceNode1}
+            onChange={handleServiceNode1Change} // Gestisce il cambiamento del nome
+          />
+          <br /><br />
+          <input
+            type="text"
+            placeholder="Service 2"
+            value={serviceNode2}
+            onChange={handleServiceNode2Change} // Gestisce il cambiamento del nome
+          />
+          <br /><br />
+          <button onClick={generateNewLink}>New Link</button>
+        </div>
+        <div>
+          {rectangles.map((rect) => (
+            <Service
+              key={rect.key}
+              id={rect.key}
+              x={rect.x}
+              y={rect.y}
+              color={rect.color}
+              name={rect.name}
+              team={rect.team}
+              smells={rect.smells}
+              onDelete={handleDelete}
+              onPositionChange={updatePosition} //Gestisce lo spostamento
+            />
           ))}
         </div>
-        <br></br>
-        <button onClick={generateRandomRectangle}>New microservice</button>
+        <Lines nodes={arcs} />
+        <br /><br /><br /><br />
+        <button onClick={saveDataToJson}>Save File</button>
+        <br /><br />
+        <p>Upload Save file</p>
+        <input type="file" onChange={uploadDataFromJson} />
       </div>
-      <br/><br/>
-      <div>
-        <h2>New link</h2>
-        <input
-          type="text"
-          placeholder="Service 1"
-          value={serviceNode1}
-          onChange={handleServiceNode1Change} // Gestisce il cambiamento del nome
-        />
-        <br/><br/>
-        <input
-          type="text"
-          placeholder="Service 2"
-          value={serviceNode2}
-          onChange={handleServiceNode2Change} // Gestisce il cambiamento del nome
-        />
-        <br/><br/>
-        <button onClick={generateNewLink}>New Link</button>
-      </div>
-      <div>
-        {rectangles.map((rect) => (
-          <Service 
-            key={rect.key}
-            id = {rect.key}
-            x={rect.x} 
-            y={rect.y} 
-            color={rect.color} 
-            name={rect.name} 
-            team={rect.team} 
-            smells={rect.smells}
-            onDelete={handleDelete}
-            onPositionChange={updatePosition} //Gestisce lo spostamento
+          
+      <div style={{ marginLeft: '20px' }}> 
+        <div>
+          <input
+            type="text"
+            placeholder="New Smell"
+            value={newSmell}
+            onChange={(e) => setNewSmell(e.target.value)} // Gestisce il cambiamento del nuovo smell
           />
+          <button onClick={handleAddSmell} style={{ marginLeft: '10px' }}>
+            Add Smell
+          </button>
+        </div>
+        <h3>Select Smells</h3>
+        {currentSmells.map((smells) => (
+          <label key={smells}>
+            <input
+              type="checkbox"
+              name={smells}
+              onChange={handleSmellsChange}
+            />
+            {smells}
+            <button onClick={() => handleRemoveSmell(smells)} style={{ marginLeft: '10px' }}>
+              X
+            </button>
+            <br />
+          </label>
         ))}
+
       </div>
-      <Lines nodes={arcs} />
-      <br/><br/><br/><br/>
-      <button onClick={saveDataToJson}>Save File</button>
-      <br/><br/>
-      <p>Upload Save file</p>
-      <input type="file" onChange={uploadDataFromJson} />
     </div>
   );
 }
