@@ -55,9 +55,9 @@ export function SecondView() {
                     r.smells.filter((s) => (s.effort == effort && s.impact == priority))
                     .map((smell, smellIndex) => (
                       <div key={`${rectIndex}-${smellIndex}`} className="smell-box">
-                        <button onClick={() => updateEffort(rectIndex, smellIndex, 1)}>&lt;</button>
+                        <button onClick={() => updateEffort(rectIndex, smellIndex, -1)}>&lt;</button>
                         {" "+smell.smell.refactoring+" "}
-                        <button onClick={() => updateEffort(rectIndex, smellIndex, -1)}>&gt;</button>
+                        <button onClick={() => updateEffort(rectIndex, smellIndex, 1)}>&gt;</button>
                         <br />
                         {"Service: " + smell.smell.name}
                       </div>
