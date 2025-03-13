@@ -1,7 +1,7 @@
 import './App.css'
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { FirstView } from './Pages/FirstView';
-import { SecondView } from './pages/SecondView';
+import { SecondView } from './Pages/SecondView';
 
 function App() {
   
