@@ -33,7 +33,6 @@ function Service({ id, x, y, color , name, team, onDelete, smells, onPositionCha
       document.removeEventListener('mouseup', handleMouseUp);
     }
 
-    // Cleanup 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -42,7 +41,7 @@ function Service({ id, x, y, color , name, team, onDelete, smells, onPositionCha
 
   //elimiza il service 
   const handleDelete = () => {
-    onDelete(id); // Notifica il genitore di eliminare il servizio
+    onDelete(id); //notifica il genitore di eliminare il servizio
   };
 
   const style = {

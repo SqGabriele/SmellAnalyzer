@@ -1,16 +1,16 @@
 import React from "react";
 
 function Lines({ nodes }) { //nodes è un array di coppie
-  // Funzione per rendere tutte le linee
+  //funzione per rendere tutte le linee
   const renderLines = () => {
     let lines = [];
     
-    // Ciclo su ogni coppia di servizi per disegnare le linee
+    //ciclo su ogni coppia di servizi per disegnare le linee
     for (let i = 0; i < nodes.length; i++) {
         const service1 = nodes[i][0];
         const service2 = nodes[i][1];
         
-        // Calcola i "punti di aggancio" dei due servizi
+        //calcola i "punti di aggancio" dei due servizi
         let startX = service1.x + 75;
         let startY = service1.y + 75;
         let endX = service2.x + 75;
@@ -38,13 +38,13 @@ function Lines({ nodes }) { //nodes è un array di coppie
           }
         }
 
-        // Aggiungi una linea tra i due servizi
+        //aggiungi una linea tra i due servizi
         lines.push(
             <line
             key={`${service1.key}-${service2.key}`}
-            x1={startX}  // Coordinate di partenza (centrate su service1)
+            x1={startX}  //coordinate di partenza (centrate su service1)
             y1={startY}
-            x2={endX}    // Coordinate di arrivo (centrate su service2)
+            x2={endX}    //coordinate di arrivo (centrate su service2)
             y2={endY}
             stroke="black"
             strokeWidth="2"
