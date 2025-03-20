@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Smell from '../Components/Smell.js';
+import "../style.css";
 
 const CurrentSmells = [new Smell('Insufficient Access Control','Use OAuth 2.0'), new Smell('Publicly Accessible Microservices','Add an API Gateway'), new Smell('Unnecessary Privileges to Microservices','Follow the Least Privilege Principle'), new Smell('Own Crypto Code','Use of Established Encryption Technologies'), new Smell('Non-Encrypted Data Exposure','Encrypt all Sensitive Data at Rest')];
 
@@ -40,8 +41,8 @@ export function FirstView(){
 
   //funzione per generare un nuovo nodo
   const generateRandomRectangle = () => {
-    //controlla se esiste già
-    if(rectangles.some((x) => x.name == serviceName))
+    //controlla se esiste già o nomi invalidi
+    if(serviceName==="" || TeamName==="" || rectangles.some((x) => x.name == serviceName))
       return;
 
     const randomX = Math.floor(Math.random() * window.innerWidth/3+300);
@@ -90,7 +91,8 @@ export function FirstView(){
       name : serviceName,
       smells: smells.map((s) => ({...s, impact : updatePriority(s)})),
       team : TeamName,
-      relevance: serviceRelevance
+      relevance: serviceRelevance,
+      size: { width:160, height:160 }
     };
 
     setRectangles((prevRectangles) => [...prevRectangles, newRectangle]);
@@ -173,6 +175,14 @@ export function FirstView(){
     });
   };
 
+  const updateRectSize = (id, size) =>{
+    setRectangles((prevRectangles) => {
+      return prevRectangles.map((rect) =>
+        rect.key === id ? { ...rect, size: size } : rect
+      );
+    });
+  }
+
   //usato sia per salvare i file json, che per persistere dati tra una vista e l'altra
   const dataToSave = {
     rectangles: rectangles,
@@ -220,11 +230,25 @@ export function FirstView(){
     }
   };
 
+  const RectButton = {
+    position: 'absolute',
+    top: '40px',
+    right: '10px',
+    backgroundColor: 'blue',
+    color: 'white',
+    border: 'none',
+    width: '25px',
+    height: '25px',
+    textAlign: 'center',
+    cursor: 'pointer',
+    fontSize: '16px'
+  };
+
 
   return (
     <div style={{ display: 'flex' }}>
       <div style={{ flex: 1 }}>
-        <div>
+        <div className="new-microservice-container">
           <h2 style={{ textAlign: 'left' }}>New microservice</h2>
           <input
             type="text"
@@ -240,18 +264,17 @@ export function FirstView(){
             onChange={handleTeamChange} //gestisce il cambiamento del nome
           />
           <br /><br />
-          <label>Service Relevance </label>
+          <label><b>Service Relevance</b> </label>
           <select value={serviceRelevance} onChange={(e) => setServiceRelevance(e.target.value)}>
             <option value="None">None</option>
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
             <option value="High">High</option>
           </select>
-          <br /><br />
+          <br />
           <button onClick={generateRandomRectangle}>New microservice</button>
         </div>
-        <br /><br />
-        <div>
+        <div className="new-microservice-container">
           <h2 style={{ textAlign: 'left' }}>New link</h2>
           <input
             type="text"
@@ -266,8 +289,14 @@ export function FirstView(){
             value={serviceNode2}
             onChange={handleServiceNode2Change} //gestisce il cambiamento del nome
           />
-          <br /><br />
+          <br />
           <button onClick={generateNewLink}>New Link</button>
+        </div>
+        <div className="new-microservice-container">
+          <h2 style={{ textAlign: 'left' }}>Manage file saving</h2>
+          <button onClick={saveDataToJson}>Save File</button>
+          <br /><br />
+          <input type="file" onChange={uploadDataFromJson} />
         </div>
         <div>
           {rectangles.map((rect) => (
@@ -282,15 +311,12 @@ export function FirstView(){
               smells={rect.smells}
               onDelete={handleDelete}
               onPositionChange={updatePosition} //gestisce lo spostamento
+              updateRectSize={updateRectSize}
+              onOpenSecondView={() => (<Link to="/smellsPriority" state={{ data: dataToSave, team: rect.team}}><button style={RectButton}>&gt;</button></Link>)}
             />
           ))}
         </div>
         <Lines nodes={arcs} />
-        <br /><br /><br /><br />
-        <button onClick={saveDataToJson}>Save File</button>
-        <br /><br />
-        <p>Upload Save file</p>
-        <input type="file" onChange={uploadDataFromJson} />
       </div>
           
       <div style={{ marginLeft: '20px' }}> 
@@ -344,7 +370,11 @@ export function FirstView(){
             </button>
           </div>
         ))}
-        <Link to="/smellsPriority" state={{ data: dataToSave}}> Second View</Link>
+        <Link to="/smellsPriority" state={{ data: dataToSave, team: null }}>
+          <button className="arrowButton">
+            &gt;
+          </button>
+        </Link>
       </div>
     </div>
   );

@@ -1,8 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import "../style.css";
 
-function Service({ id, x, y, color , name, team, onDelete, smells, onPositionChange}) {
+function Service({ id, x, y, color , name, team, onDelete, smells, onPositionChange, updateRectSize, onOpenSecondView}) {
   const [position, setPosition] = useState({ x, y });   //la posizione
   const [isDragging, setIsDragging] = useState(false);  //il dragging
+  const serviceRef = useRef(null)
+
+  useEffect(() => {
+    if (serviceRef.current) {
+      const { width, height } = serviceRef.current.getBoundingClientRect();
+      updateRectSize(id,{ width, height })
+    }
+  }, []);
 
   //logica per il drag&drop
   const handleMouseDown = (e) => {
@@ -48,10 +57,16 @@ function Service({ id, x, y, color , name, team, onDelete, smells, onPositionCha
     position: 'absolute',
     left: `${position.x}px`,
     top: `${position.y}px`,
-    width: '150px',
-    height: '150px',
+    minWidth: '150px', 
+    minHeight: '150px', 
     backgroundColor: color,
-    cursor: 'move'
+    borderRadius: '10px', 
+    cursor: 'move', 
+    display: 'flex',
+    padding: '5px',
+    flexDirection: 'column',
+    transition: 'all 0.1s ease',
+    fontFamily: 'Arial, Helvetica, sans-serif',
   };
 
   const buttonStyle = {
@@ -68,11 +83,21 @@ function Service({ id, x, y, color , name, team, onDelete, smells, onPositionCha
     fontSize: '16px'
   };
 
-  return <div style={style} onMouseDown={handleMouseDown}>
+  const textContainerStyle = {
+    width: '90%',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+  };
+
+  return <div ref={serviceRef} style={style} onMouseDown={handleMouseDown}>
       <button style={buttonStyle} onClick={handleDelete}>X</button>
-      <p>Service: {name}</p>
-      <p>Team: {team}</p>
-      <p>Smell: {smells.length}</p>
+      {onOpenSecondView()}
+      <div style={textContainerStyle}>
+        <p><b>Service:</b> {name}</p>
+        <p><b>Team:</b> {team}</p>
+        <p><b>Smell:</b> {smells.length}</p>
+      </div>
     </div>;
 }
 

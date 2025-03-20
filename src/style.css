@@ -1,3 +1,7 @@
+body {
+  font-family: Verdana, Geneva, sans-serif;
+}
+
 .container {
   padding: 20px;
 }
@@ -41,6 +45,72 @@ h2 {
 
 .smell-box {
   margin-bottom: 10px;
-  background-color: rgb(150, 150, 150);
   padding: 10px;
+}
+
+.arrowButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: blue; 
+  color: white;
+  font-size: 20px; 
+  padding: 10px 15px;
+  border: none; 
+  border-radius: 40%; 
+  cursor: pointer; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/*Container per inserire nuovi dati della prima vista*/
+.new-microservice-container {
+  max-width: 250px;
+  background-color: #f7f7f7;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 15px;
+}
+
+.new-microservice-container h2 {
+  color: #4A90E2;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.new-microservice-container input,
+.new-microservice-container select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.new-microservice-container button {
+  padding: 8px 12px;
+  background-color: #4A90E2;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.new-microservice-container button:hover {
+  background-color: #357ABD;
+}
+
+.new-microservice-container input[type="file"] {
+  width: 100%; 
+  padding: 8px;
+  font-size: 14px; 
+  margin-top: 10px; 
+  background-color: #f0f0f0; 
+  border: 1px solid #ccc; 
+  border-radius: 4px; /
 }

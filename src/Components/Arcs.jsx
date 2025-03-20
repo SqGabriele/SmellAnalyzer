@@ -11,30 +11,30 @@ function Lines({ nodes }) { //nodes è un array di coppie
         const service2 = nodes[i][1];
         
         //calcola i "punti di aggancio" dei due servizi
-        let startX = service1.x + 75;
-        let startY = service1.y + 75;
-        let endX = service2.x + 75;
-        let endY = service2.y + 75;
+        let startX = service1.x + service1.size.width/2;
+        let startY = service1.y + service1.size.height/2;
+        let endX = service2.x + service2.size.width/2;
+        let endY = service2.y + service2.size.height/2;
         const deltaX = service1.x - service2.x;
         const deltaY = service1.y - service2.y;
         if(Math.abs(deltaX) > Math.abs(deltaY)){
           if(deltaX <= 0){
-            startX += 75;
-            endX -= 75;
+            startX += service1.size.width/2;
+            endX -= service2.size.width/2;
           }    
           else{
-            startX -= 75;
-            endX += 75;
+            startX -= service1.size.width/2;
+            endX += service2.size.width/2;
           }      
         }
         else{
           if(deltaY <= 0){
-            startY += 75;
-            endY -= 75;
+            startY += service1.size.height/2;
+            endY -= service2.size.height/2;
           }
           else{
-            startY -= 75;
-            endY += 75;
+            startY -= service1.size.height/2;
+            endY += service2.size.height/2;
           }
         }
 
