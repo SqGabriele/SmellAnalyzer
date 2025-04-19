@@ -1,15 +1,50 @@
-import React from "react";
+import React, { useState } from "react";
 
-function Lines({ nodes }) { //nodes è un array di coppie
+function Lines({ nodes, newArc, prospective, onDeleteArc, isChecked }) { //nodes è un array di coppie
+  const [hoveredKey, setHoveredKey] = useState(null);
+
+  //data una diversa prospettiva ti dice se renderizzare un arco
+  const renderThisArc = (arc) => {
+    if(prospective.some(x => arc[0].team === x.value)){
+      if(isChecked)
+        return true;
+      if(prospective.some(x => arc[1].team === x.value))
+        return true;
+    }
+    if(isChecked && prospective.some(x => arc[1].team === x.value))
+      return true;
+    return false;
+  }
+
   //funzione per rendere tutte le linee
   const renderLines = () => {
     let lines = [];
+
+    //prima linea
+    if(newArc!= null){
+      lines.push(
+        <line
+        key={`newArc`}
+        x1={newArc.arcPosition[0].x}  //coordinate di partenza (centrate su service1)
+        y1={newArc.arcPosition[0].y}
+        x2={newArc.arcPosition[1].x}    //coordinate di arrivo (centrate su service2)
+        y2={newArc.arcPosition[1].y}
+        stroke="black"
+        strokeWidth="2"
+        markerEnd="url(#arrowhead)"
+        />
+      );
+    }   
     
     //ciclo su ogni coppia di servizi per disegnare le linee
     for (let i = 0; i < nodes.length; i++) {
+        //renderizzo questo arco?
+        if(!(renderThisArc(nodes[i])))
+          continue;
+
         const service1 = nodes[i][0];
         const service2 = nodes[i][1];
-        
+
         //calcola i "punti di aggancio" dei due servizi
         let startX = service1.x + service1.size.width/2;
         let startY = service1.y + service1.size.height/2;
@@ -38,18 +73,38 @@ function Lines({ nodes }) { //nodes è un array di coppie
           }
         }
 
+        const key = `${service1.key}-${service2.key}`;
+        const isHovered = hoveredKey === key;
+
         //aggiungi una linea tra i due servizi
         lines.push(
-            <line
-            key={`${service1.key}-${service2.key}`}
-            x1={startX}  //coordinate di partenza (centrate su service1)
+          <g key={`arc-${key}`}>
+          {/*linea vera e propria*/}
+          <line
+            x1={startX}
             y1={startY}
-            x2={endX}    //coordinate di arrivo (centrate su service2)
+            x2={endX}
             y2={endY}
-            stroke="black"
-            strokeWidth="2"
+            stroke={isHovered ? "red" : "black"}
+            strokeWidth={2}
             markerEnd="url(#arrowhead)"
-            />
+            pointerEvents="none"
+          />
+        
+          {/*hitbox*/}
+          <line
+            x1={startX}
+            y1={startY}
+            x2={endX}
+            y2={endY}
+            stroke="transparent"
+            strokeWidth={12}
+            onMouseEnter={() => setHoveredKey(key)}
+            onMouseLeave={() => setHoveredKey(null)}
+            onClick={() => onDeleteArc(service1, service2)}
+            style={{ pointerEvents: "auto", cursor: "pointer" }}
+          />
+        </g>
         );
     }
 
@@ -57,7 +112,7 @@ function Lines({ nodes }) { //nodes è un array di coppie
   };
 
   return (
-    <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -1 }}>
+    <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
       <defs>
         <marker
           id="arrowhead"

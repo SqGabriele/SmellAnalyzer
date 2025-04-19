@@ -1,0 +1,22 @@
+{
+  "Insufficient Access Control": {
+    "refactoring": ["Use OAuth 2.0"],
+    "qualityAttributes": ["Confidentiality"]
+  },
+  "Publicly Accessible Microservices": {
+    "refactoring": ["Add an API Gateway"],
+    "qualityAttributes": ["Confidentiality"]
+  },
+  "Unnecessary Privileges to Microservices": {
+    "refactoring": ["Follow the Least Privilege Principle"],
+    "qualityAttributes": ["Confidentiality","Integrity"]
+  },
+  "Own Crypto Code": {
+    "refactoring": ["Use Established Encryption Technologies"],
+    "qualityAttributes": ["Confidentiality","Integrity","Authenticity"]
+  },
+  "Non-Encrypted Data Exposure": {
+    "refactoring": ["Encrypt all Sensitive Data at Rest"],
+    "qualityAttributes": ["Confidentiality","Integrity","Authenticity"]
+    }
+}

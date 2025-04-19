@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
+import { Icon } from '@iconify/react';
 import "../style.css";
 
-function Service({ id, x, y, color , name, team, onDelete, smells, onPositionChange, updateRectSize, onOpenSecondView}) {
+function Service({ id, x, y, color , name, team, onDelete, smells, onPositionChange, updateRectSize, onGenerateArc, isGeneratingNewArc, addArc, onOpenDialog}) {
   const [position, setPosition] = useState({ x, y });   //la posizione
   const [isDragging, setIsDragging] = useState(false);  //il dragging
   const serviceRef = useRef(null)
@@ -14,7 +15,9 @@ function Service({ id, x, y, color , name, team, onDelete, smells, onPositionCha
   }, []);
 
   //logica per il drag&drop
-  const handleMouseDown = (e) => {
+  const handleMouseDown = () => {
+    if(isGeneratingNewArc.current === true)
+      addArc(id);
     setIsDragging(true);
   };
 
@@ -50,50 +53,26 @@ function Service({ id, x, y, color , name, team, onDelete, smells, onPositionCha
 
   //elimiza il service 
   const handleDelete = () => {
-    onDelete(id); //notifica il genitore di eliminare il servizio
+    onDelete(id, team); //notifica il genitore di eliminare il servizio
   };
 
-  const style = {
-    position: 'absolute',
-    left: `${position.x}px`,
-    top: `${position.y}px`,
-    minWidth: '150px', 
-    minHeight: '150px', 
-    backgroundColor: color,
-    borderRadius: '10px', 
-    cursor: 'move', 
-    display: 'flex',
-    padding: '5px',
-    flexDirection: 'column',
-    transition: 'all 0.1s ease',
-    fontFamily: 'Arial, Helvetica, sans-serif',
+  const newArc = () => {
+    onGenerateArc(id);
   };
 
-  const buttonStyle = {
-    position: 'absolute',
-    top: '10px',
-    right: '10px',
-    backgroundColor: 'red',
-    color: 'white',
-    border: 'none',
-    width: '25px',
-    height: '25px',
-    textAlign: 'center',
-    cursor: 'pointer',
-    fontSize: '16px'
+  const openDialog = () => {
+    onOpenDialog(id);
   };
 
-  const textContainerStyle = {
-    width: '90%',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-  };
-
-  return <div ref={serviceRef} style={style} onMouseDown={handleMouseDown}>
-      <button style={buttonStyle} onClick={handleDelete}>X</button>
-      {onOpenSecondView()}
-      <div style={textContainerStyle}>
+  return <div ref={serviceRef} className="service-container" style={{ left: `${position.x}px`, top: `${position.y}px`, backgroundColor: color }} onMouseDown={handleMouseDown} >
+      <button className="service-button delete" onClick={handleDelete}>X</button>
+      <button className="service-button arc" onClick={newArc}>
+        <Icon icon="heroicons-solid:arrow-trending-up" />
+      </button>
+      <button className="service-button dialog" onClick={openDialog}>
+        <Icon icon="heroicons-solid:bars-3-bottom-left" />
+      </button>
+      <div className="service-text-container">
         <p><b>Service:</b> {name}</p>
         <p><b>Team:</b> {team}</p>
         <p><b>Smell:</b> {smells.length}</p>
