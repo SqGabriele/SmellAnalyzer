@@ -12,7 +12,7 @@ export function ThirdView({page, setPage}) {
     const [selectedTeams2, setSelectedTeams2] = useState(data.team); //per i team affetti
     const [refactorTree, setRefactorTree] = useState({});
     const [urgency, setUrgency] = useState(data.urgency);
-    const [effort, setEffort] = useState(data.urgency);
+    const [effort, setEffort] = useState(data.effort);
 
     //chatbot
     useEffect(() => {
