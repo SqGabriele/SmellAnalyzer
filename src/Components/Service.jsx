@@ -64,7 +64,8 @@ function Service({ id, x, y, color , name, team, onDelete, smells, onPositionCha
     onOpenDialog(id);
   };
 
-  return <div ref={serviceRef} className="service-container" style={{ left: `${position.x}px`, top: `${position.y}px`, backgroundColor: color }} onMouseDown={handleMouseDown} >
+  return <div ref={serviceRef}
+          className="service-container noselect" style={{ left: `${position.x}px`, top: `${position.y}px`, backgroundColor: color }} onMouseDown={handleMouseDown} >
       <button className="service-button delete" onClick={handleDelete}>X</button>
       <button className="service-button arc" onClick={newArc}>
         <Icon icon="heroicons-solid:arrow-trending-up" />

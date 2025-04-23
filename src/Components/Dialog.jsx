@@ -62,6 +62,7 @@ const Dialog = ({ isOpen, onClose, onSave, service, currentSmells }) => {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                maxLength="50"
             />
           </div>
           <div> 
@@ -70,6 +71,7 @@ const Dialog = ({ isOpen, onClose, onSave, service, currentSmells }) => {
                 type="text"
                 value={team}
                 onChange={(e) => setTeam(e.target.value)}
+                maxLength="50"
             />
           </div>
           <div>

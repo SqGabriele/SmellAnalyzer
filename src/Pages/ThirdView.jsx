@@ -4,13 +4,26 @@ import Select from "react-select";
 import Xarrow from 'react-xarrows';
 import { useEffect, useState } from "react";
 
-export function ThirdView() {
+export function ThirdView({page, setPage}) {
     const location = useLocation();
     const data = location.state?.data;
     const smellList = data.currentSmells;
     const [selectedTeams, setSelectedTeams] = useState(data.teamAffected || []); //per la prospettiva
     const [selectedTeams2, setSelectedTeams2] = useState(data.team); //per i team affetti
     const [refactorTree, setRefactorTree] = useState({});
+    const [urgency, setUrgency] = useState(data.urgency);
+    const [effort, setEffort] = useState(data.urgency);
+
+    //chatbot
+    useEffect(() => {
+        if (!page.done) {
+          if (page.type === "effort") {data.effort = page.content; setEffort(page.content);}
+          else if (page.type === "urgency") {data.urgency = page.content; setUrgency(page.content);}
+          else if (page.type === "team" && data.teamColors[page.content]) setSelectedTeams([{value: page.content, label: page.content}]);
+      
+          setPage(prev => ({ ...prev, done: true }));
+        }
+      }, [page]);
 
     //crea l'albero "logico"
     useEffect(()=>{
@@ -32,7 +45,7 @@ export function ThirdView() {
             tree[s.team].push(serviceNode);
         }
         setRefactorTree(tree);
-    }, [selectedTeams, selectedTeams2]);
+    }, [selectedTeams, selectedTeams2, urgency, effort]);
 
     const stringToIntOGImpact = (string) =>{
         switch(string){
@@ -67,11 +80,11 @@ export function ThirdView() {
     const getAttributes = (service) =>{
         const attrb = {};
         for(let s of service.smellsInstances){
-            const effort = 2-stringToIntEffort(s.effort);
+            const eff = 2-stringToIntEffort(s.effort);
             const impact = 6-stringToIntImpact(s.impact);
-            if(effort < data.effort[0] || effort > data.effort[1])
+            if(eff < effort[0] || eff > effort[1])
                 continue;
-            if(impact < data.urgency[0] || impact > data.urgency[1])
+            if(impact < urgency[0] || impact > urgency[1])
                 continue; 
             const smell = smellList[s.smell];
             for(let qA of smell.qualityAttributes){
@@ -92,11 +105,11 @@ export function ThirdView() {
         const attrb = {};
         let isEmpty = true;
         for(let s of service.smellsInstances){
-            const effort = 2-stringToIntEffort(s.effort);
+            const eff = 2-stringToIntEffort(s.effort);
             const impact = 6-stringToIntImpact(s.impact);
-            if(effort < data.effort[0] || effort > data.effort[1])
+            if(eff < effort[0] || eff > effort[1])
                 continue;
-            if(impact < data.urgency[0] || impact > data.urgency[1])
+            if(impact < urgency[0] || impact > urgency[1])
                 continue;
             isEmpty = false; //assumo che ogni smell abbia un refactor
             const smell = smellList[s.smell];

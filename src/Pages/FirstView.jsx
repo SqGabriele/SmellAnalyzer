@@ -2,6 +2,7 @@ import Service from '../Components/Service';
 import Lines from '../Components/Arcs';
 import Dialog from '../Components/Dialog';
 import Select from "react-select";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
@@ -9,9 +10,10 @@ import { Icon } from '@iconify/react';
 import smellDefault from '../Smells.json';
 import "../style.css";
 
-export function FirstView(){
+export function FirstView({page, setPage, teamForChatBot}){
   const location = useLocation();
   const data = location.state?.data;
+  const navigate = useNavigate();
 
   const [services, setServices] = useState([]);
   const [serviceName, setServiceName] = useState(''); //stato per il nome del servizio
@@ -29,10 +31,27 @@ export function FirstView(){
   const teamCounter = useRef(data?.counter || {}); 
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false); //per i team affetti
+  
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
+
+  //naviga grazie al chatbot
+  useEffect(() => {
+    if (!page.done) {
+      const d = { ...dataToPersist };
+      if (page.type === "effort") d.effort = page.content;
+      else if (page.type === "urgency") d.urgency = page.content;
+      else if (page.type === "team" && teamColors[page.content]) d.teamAffected = [{value: page.content, label: page.content}];
+  
+      if (page.page === 3) {
+        navigate("/refactoring", { state: { data: d } });
+      }
+  
+      setPage(prev => ({ ...prev, done: true }));
+    }
+  }, [page]);
   
   const presetColors = useRef({
     "hsl(44, 100%, 50%)": false,
@@ -117,6 +136,11 @@ export function FirstView(){
       }
     }
   },[]);
+
+  //copia i team per il chatbot
+  useEffect(()=>{
+    teamForChatBot.current = teamColors;
+  },[teamColors])
 
   //muovi il mouse e clicca
   useEffect(() => {
@@ -212,7 +236,7 @@ export function FirstView(){
   //funzione per generare un nuovo nodo
   const generateService = () => {
     //controlla se esiste già o nomi invalidi
-    if(serviceName==="" || TeamName==="" || services.some((x) => x.name == serviceName))
+    if(serviceName==="" || TeamName==="")
       return;
 
     const randomX = Math.floor(Math.random() * window.innerWidth/3+300);
@@ -496,6 +520,7 @@ export function FirstView(){
               placeholder="service"
               value={serviceName}
               onChange={handleNameChange}
+              maxLength="50"
             />
           </div>
           <div className="form-group">
@@ -505,6 +530,7 @@ export function FirstView(){
               placeholder="team"
               value={TeamName}
               onChange={handleTeamChange}
+              maxLength="50"
             />
           </div>
           <div className="form-group">
@@ -523,12 +549,13 @@ export function FirstView(){
           <hr />
           <h2>File Management</h2>
           <button onClick={saveDataToJson}> Save to File</button>
+          <br/><br/>
           <div className="form-group">
-            <label>Upload Save File</label>
+            <label><b>Upload Save File</b></label>
             <input type="file" accept=".json" onChange={uploadDataFromJson} />
           </div>
           <div className="form-group">
-            <label>Upload Smell File</label>
+            <label><b>Upload Smell List</b></label>
             <input type="file" accept=".json" onChange={uploadSmellFile} />
           </div>
         </div>

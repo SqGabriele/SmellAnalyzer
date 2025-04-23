@@ -1,12 +1,14 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Icon } from '@iconify/react';
+import { useNavigate } from "react-router-dom";
 import React from "react";
 import Select from "react-select";
 import ReactSlider from "react-slider";
 import "../style.css";
 
-export function SecondView() {
+export function SecondView({page, setPage}) {
+  const navigate = useNavigate();
   const location = useLocation();
   const data = location.state?.data || {};
 
@@ -22,6 +24,22 @@ export function SecondView() {
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [urgency, setUrgency] = useState(data.urgency);
   const [effort, setEffort] = useState(data.effort);
+
+  //naviga grazie al chatbot
+  useEffect(() => {
+    if (!page.done) {
+      const d = { ...updateData() };
+      if (page.type === "effort") d.effort = page.content;
+      else if (page.type === "urgency") d.urgency = page.content;
+      else if (page.type === "team" && data.teamColors[page.content]) d.teamAffected = [{value: page.content, label: page.content}];
+  
+      if (page.page === 3) {
+        navigate("/refactoring", { state: { data: d } });
+      }
+  
+      setPage(prev => ({ ...prev, done: true }));
+    }
+  }, [page]);
 
   //aumenta o diminuisce l'effort
   const updateEffort = (serviceIndex, smellIndex, increment) => {
