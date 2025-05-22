@@ -1,0 +1,15 @@
+[
+    "Confidentiality",
+    "Integrity",
+    "Authenticity",
+
+    "Time Behaviour",
+    "Resource Utilization",
+    "Capacity",
+
+    "Modularity",
+    "Reusability",
+    "Analysability",
+    "Modifiability",
+    "Testability"
+]

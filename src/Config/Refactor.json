@@ -1,0 +1,22 @@
+{
+    "Use OAuth 2.0": {
+      "affectOnInteraction": true,
+      "affectOnInteracted": false
+    },
+    "Add an API Gateway": {
+      "affectOnInteraction": true,
+      "affectOnInteracted": true
+    },
+    "Follow the Least Privilege Principle": {
+      "affectOnInteraction": false,
+      "affectOnInteracted": true
+    },
+    "Use Established Encryption Technologies": {
+      "affectOnInteraction": true,
+      "affectOnInteracted": true
+    },
+    "Encrypt all Sensitive Data at Rest": {
+      "affectOnInteraction": false,
+      "affectOnInteracted": true
+    }
+}

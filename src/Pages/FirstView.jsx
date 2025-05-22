@@ -3,25 +3,27 @@ import Lines from '../Components/Arcs';
 import Dialog from '../Components/Dialog';
 import Select from "react-select";
 import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { Icon } from '@iconify/react';
-import smellDefault from '../Smells.json';
+import { signOut, getAuth,onAuthStateChanged   } from "firebase/auth";
+import { auth } from "../firebase";
+import { getFirestore, setDoc, doc, getDoc } from "firebase/firestore";
+import smellDefault from '../Config/Smells.json';
 import "../style.css";
 
-export function FirstView({page, setPage, teamForChatBot}){
+export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POuid}){
   const location = useLocation();
   const data = location.state?.data;
   const navigate = useNavigate();
 
   const [services, setServices] = useState([]);
   const [serviceName, setServiceName] = useState(''); //stato per il nome del servizio
-  const [TeamName, setTeamName] = useState(''); //stato per il team del servizio
+  const [TeamName, setTeamName] = useState(POuid === null? '' : POuid[1]); //stato per il team del servizio
   const [arcs, setArcs] = useState([]); //stato per memorizzare gli archi
   const [newArc, setNewArc] = useState(null);
   const isGeneratingNewArc = useRef(false);
-  const [currentSmells, setCurrentSmells] = useState({}); //smells disponibili
+  const [currentSmells, setCurrentSmells] = useState(data?.currentSmells || {}); //smells disponibili
   const [teamColors, setTeamColors] = useState({});
   const [serviceRelevance, setServiceRelevance] = useState('None');
   const [mousePosition,setMousePosition] = useState({ x: null, y: null }); //posizione del mouse
@@ -31,11 +33,58 @@ export function FirstView({page, setPage, teamForChatBot}){
   const teamCounter = useRef(data?.counter || {}); 
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false); //per i team affetti
-  
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false); //per conferma di eliminare un service
+  const [serviceToDelete, setServiceToDelete] = useState(null);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const timeoutRef = useRef(null);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [nodeRejectionDialog, setNodeRejectionDialog] = useState(false);
+  const loadedData = useRef(null);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [zoom, setZoom] = useState(data?.zoom || 1);
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
+
+  //ricarica i dati (eventualmente da salvataggio)
+  useEffect(() => {
+    const auth = getAuth();
+    const db = getFirestore();
+
+    if (data !== undefined) {
+      loadData(data);
+    }
+    else if (POuid!==null){
+      const loadSave = async () => {
+        const docRef = doc(db, "Saves", POuid[0]);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const savedData = docSnap.data();
+          loadData(savedData, true);
+          setProspective([{ value: POuid[1], label: POuid[1] }]);
+        }
+      }
+      loadSave();
+    }
+    else{
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if(user){
+          const uid = auth.currentUser.uid;
+          const docRef = doc(db, "Saves", uid);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const savedData = docSnap.data();
+            loadData(savedData, true);
+          }
+        }
+      });
+
+    return () => unsubscribe();
+    }
+  }, [data]);
 
   //naviga grazie al chatbot
   useEffect(() => {
@@ -43,27 +92,85 @@ export function FirstView({page, setPage, teamForChatBot}){
       const d = { ...dataToPersist };
       if (page.type === "effort") d.effort = page.content;
       else if (page.type === "urgency") d.urgency = page.content;
-      else if (page.type === "team" && teamColors[page.content]) d.teamAffected = [{value: page.content, label: page.content}];
-  
+      else if (page.type === "team" && (teamColors[page.content] || page.content === "all")){
+        if(page.content !== "all")
+          d.teamAffected = [{value: page.content, label: page.content}];
+        else 
+          d.teamAffected =(Object.keys(teamColors).map((team) => ({ value: team, label: team })));
+        if(page.page === 1){
+          setProspective(d.teamAffected);
+          setIsCheckboxChecked(false);
+        }
+      }
+      else if (page.type === "teamAdd" && (teamColors[page.content])){
+        d.teamAffected = prospective;
+        d.teamAffected.push({ value: page.content, label: page.content });
+        if(page.page === 1){
+          setProspective(d.teamAffected);
+          setIsCheckboxChecked(false);
+        }
+      }
+      else if(page.type === "team_interaction"){
+        setIsCheckboxChecked(true);
+      } 
+      else if(page.type === "generating_node")
+        generateService(null ,page.content[0], page.content[1],"Medium");
+      else if(page.type === "generating_link")
+        generateNewLink(null, page.content[0], page.content[1]);
+      else if(page.type === "remove_link")
+        onDeleteArc(null,null, page.content[0], page.content[1]);
+      else if(page.type === "remove_service")
+        confirmDelete(null, page.content[0]);
+      else if(page.type === "suggest"){
+        setIsDataLoaded(false)
+        setPage(prev => ({ ...prev, doneAsync: false, done:true }));
+      }
+        
       if (page.page === 3) {
         navigate("/refactoring", { state: { data: d } });
       }
   
       setPage(prev => ({ ...prev, done: true }));
     }
-  }, [page]);
+    else if(!page.doneAsync && isDataLoaded){
+      if(page.type === "generating_node")
+        generateService(null ,page.content[0], page.content[1],"Medium");
+      else if(page.type === "generating_link")
+        generateNewLink(null, page.content[0], page.content[1]);
+      else if(page.type === "remove_link")
+        onDeleteArc(null,null, page.content[0], page.content[1]);
+      else if(page.type === "remove_service")
+        confirmDelete(null, page.content[0]);
+      setPage(prev => ({ ...prev, doneAsync: true, done: true }));;
+    }
+  }, [page,isDataLoaded]);
+
+  const handleClick = async (path) => {
+    saveOnCloud();
+    navigate(path, { state: { data: dataToPersist } });
+  };
   
   const presetColors = useRef({
     "hsl(44, 100%, 50%)": false,
     "hsl(147, 100%, 50%)": false,
-    "hsl(288, 100%, 50%)": false,
+    "hsl(299, 100%, 50%)": false,
     "hsl(190, 100%, 50%)": false,
     "hsl(18, 100%, 50%)": false,
     "hsl(280, 100%, 50%)": false,
     "hsl(200, 100%, 50%)": false,
     "hsl(338, 100%, 50%)": false,
-    "hsl(135, 100%, 50%)": false,
+    "hsl(120, 100%, 50%)": false,
   });
+
+  const handleLogout = async () => {
+    saveOnCloud();
+    try {
+      await signOut(auth);
+      navigate("/"); // Torna alla pagina di login
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  };
 
   //gestisce i team dinamicamente
   const addToTeam = (team, updateProspective = true) => {  
@@ -95,15 +202,19 @@ export function FirstView({page, setPage, teamForChatBot}){
 
   //ripristina lo stato con i dati caricati
   const loadData = (loadedData, fromSave=false) => {
-  setServices(loadedData.services || []);
-  setArcs(loadedData.arcs || []);
-  setTeamColors(loadedData.teamColors || {});
-  setCurrentSmells(loadedData.currentSmells || {});
-  setIsCheckboxChecked(loadedData.checkboxOption || false);
-  for(let color of Object.keys(loadedData.teamColors)){
-    const c = loadedData.teamColors[color];
-    if(presetColors.current[c] !== undefined)
-      presetColors.current[c] = true;
+    setZoom(loadedData.zoom || 1)
+    setServices(loadedData.services || []);
+    if(!fromSave)
+      setArcs(loadedData.arcs || []);
+    else
+      setArcs(loadedData.arcs.map(x=> [loadedData.services.find(s => s.key===x.from.key),loadedData.services.find(s => s.key===x.to.key)]) || [])
+    setTeamColors(loadedData.teamColors || {});
+    setIsCheckboxChecked(loadedData.checkboxOption || false);
+    for(let color of Object.keys(loadedData.teamColors)){
+      const c = loadedData.teamColors[color];
+      if(presetColors.current[c] !== undefined)
+        presetColors.current[c] = true;
+    setIsDataLoaded(true);
   }
 
   //cambia prospettiva
@@ -120,12 +231,6 @@ export function FirstView({page, setPage, teamForChatBot}){
   } 
 };
 
-  useEffect(() => {
-    if (data !== undefined) {
-      loadData(data);
-    }
-  }, [data]);
-
   //leggi gli smell dal json di default
   useEffect(() =>{
     if(data === undefined){
@@ -141,6 +246,11 @@ export function FirstView({page, setPage, teamForChatBot}){
   useEffect(()=>{
     teamForChatBot.current = teamColors;
   },[teamColors])
+
+  //copia i service per il chatbot
+  useEffect(()=>{
+    serviceForChatBot.current = services;
+  },[services])
 
   //muovi il mouse e clicca
   useEffect(() => {
@@ -210,7 +320,7 @@ export function FirstView({page, setPage, teamForChatBot}){
   }
 
   //crea la priorità sulla base della rilevanza del servizio e sull'impatto sullo smell
-  const updatePriority = (s, rel) => {
+  const updatePriority = (s, rel, qualityAttributes) => {
     const stringToInt = (string) =>{
       switch(string){
         case "None": return 0;
@@ -220,7 +330,13 @@ export function FirstView({page, setPage, teamForChatBot}){
       }
     }
     const relevance = stringToInt(rel);
-    const impact = stringToInt(s.originalImpact);
+    //l'impatto si prende il max dell'importanza dei quality attributes
+    let impact = 0;
+    for(let q of currentSmells[s.smell].qualityAttributes){
+      const n = stringToInt(qualityAttributes[q] || "None");
+      if(impact < n)
+        impact = n;
+    }
     const priority = relevance + impact; 
     switch(priority){
       case 0: return "None";
@@ -234,25 +350,26 @@ export function FirstView({page, setPage, teamForChatBot}){
   }
 
   //funzione per generare un nuovo nodo
-  const generateService = () => {
+  const generateService = (_, service_name= serviceName, team_name= TeamName, service_relevance= serviceRelevance) => {
     //controlla se esiste già o nomi invalidi
-    if(serviceName==="" || TeamName==="")
+    if(service_name==="" || team_name==="")
       return;
 
     const randomX = Math.floor(Math.random() * window.innerWidth/3+300);
     const randomY = Math.floor(Math.random() * window.innerHeight/3+100);
 
-    generateTeam(TeamName);
+    generateTeam(team_name);
 
     const newService = {
       key: Date.now(),
       x: randomX,
       y: randomY,
-      color: teamColors[TeamName],
-      name : serviceName,
+      color: teamColors[team_name],
+      name : service_name,
       smellsInstances: [],
-      team : TeamName,
-      relevance: serviceRelevance,
+      attributes: {},
+      team : team_name,
+      relevance: service_relevance,
       size: { width:160, height:160 }
     };
 
@@ -268,25 +385,62 @@ export function FirstView({page, setPage, teamForChatBot}){
     setTeamName(event.target.value); //aggiorna lo stato con il team inserito
   };
 
-  //rimuove il servizio dall'array
-  const handleDelete = (id, team) => {
-    removeToTeam(team);
-    setServices((services) => services.filter((service) => service.key !== id));
-    setArcs((prevArcs) => prevArcs.filter((arc) => arc[0].key !== id && arc[1].key !== id));
+  //chiede conferma
+  const handleDelete = (serviceId, team) => {
+    //se sono un team leader
+    if(POuid !== null){
+      //ci sono archi che lo collegano ad altri team
+      const link = arcs.filter((arc) => (arc[0].key === serviceId && arc[1].team !== POuid[1]) || (arc[1].key === serviceId && arc[0].team !== POuid[1]));
+      if(link.length >0){
+        setNodeRejectionDialog(true);
+        return;
+      }
+    }
+    setServiceToDelete({"id":serviceId, "team":team});
+    setIsConfirmDialogOpen(true);
+  };
+
+  //elimina effettivamente il servizio
+  const confirmDelete = (e, serviceName = null) => {
+    let s = serviceToDelete;
+    if(serviceName !== null){
+      const serv = services.find(x=>x.name===serviceName);
+      s= {id: serv.key, team: serv.team};
+    }
+
+    if (s?.id) {
+      removeToTeam(s.team);
+      setServices((prevServices) => prevServices.filter((x) => x.key !== s.id));
+      setArcs((prevArcs) => prevArcs.filter((arc) => arc[0].key !== s.id && arc[1].key !== s.id));
+      setServiceToDelete(null);
+      setIsConfirmDialogOpen(false);
+    }
   };
 
   //funzione per generare nuovi link tra nodi
-  const generateNewLink = (endNodeId) => {
+  const generateNewLink = (endNodeId, startNodeName=null, endNodeName=null) => {
+    let startKey = newArc?.startService;
+    let endKey = endNodeId;
+  
+    if(startNodeName)
+      startKey= services.find(x=>x.name===startNodeName)?.key;
+    if(endNodeName)
+      endKey= services.find(x=>x.name===endNodeName)?.key;
+
     //stessi archi
-    if(newArc.startService === endNodeId)
+    if(startKey === endKey)
       return
 
     //controlla se esiste già
-    if(arcs.some((x) => (x[0].key === newArc.startService) && (x[1].key === endNodeId)))
+    if(arcs.some((x) => (x[0].key === startKey) && (x[1].key === endKey)))
       return;
 
-    const firstNode = services.find((x) => x.key == newArc.startService);
-    const secondNode = services.find((x) => x.key == endNodeId);
+    const firstNode = services.find((x) => x.key == startKey);
+    const secondNode = services.find((x) => x.key == endKey);
+
+    //l'arco di arrivo non è tuo
+    if(POuid !== null && secondNode.team !== POuid[1])
+      return;
 
     if(firstNode !== undefined && secondNode !== undefined)
       setArcs((prevArcs) => [...prevArcs, [firstNode, secondNode]]);
@@ -299,7 +453,12 @@ export function FirstView({page, setPage, teamForChatBot}){
     })
   }
 
-  const onDeleteArc = (service1, service2) => {
+  const onDeleteArc = (service1, service2, serviceName1 = null, serviceName2 = null) => {
+    if(serviceName1 !== null)
+      service1 = services.find(x=>x.name===serviceName1);
+    if(serviceName2 !== null)
+      service2 = services.find(x=>x.name===serviceName2);
+
     const updatedNodes = arcs.filter(
       (pair) => !(pair[0].key === service1.key && pair[1].key === service2.key)
     );
@@ -362,19 +521,21 @@ export function FirstView({page, setPage, teamForChatBot}){
     urgency: data?.urgency || [0,6],
     effort: data?.effort || [0,2],
     checkboxOption: isCheckboxChecked,
-    counter: teamCounter.current
+    counter: teamCounter.current,
+    zoom: zoom
   };
 
-  //usato sia per salvare i file json
+  //usato per salvare i file json
   const dataToSave = {
     services: services,
     teamColors: teamColors,
-    arcs: arcs,
-    currentSmells: currentSmells
+    arcs: arcs.map(x => ({from: { name: x[0].name, key: x[0].key }, to: { name: x[1].name, key: x[1].key }})),
+    zoom: zoom
   };
 
   //salva un file json con i dati inseriti
   const saveDataToJson = () => {
+    saveOnCloud();
     const blob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -384,49 +545,86 @@ export function FirstView({page, setPage, teamForChatBot}){
     URL.revokeObjectURL(url);
   };
 
-  const uploadDataFromJson = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      
-      reader.onload = (e) => {
-        try {
-          const loadedData = JSON.parse(e.target.result);
-          
-          loadData(loadedData, true);
-        } catch (error) {
-          console.error('Error reading JSON file:', error);
-        }
-      };
-  
-      reader.readAsText(file);
+  //salva in cloud
+  const saveOnCloud = async() =>{
+    const auth = getAuth();
+    const db = getFirestore();
+    const user = auth.currentUser;
+
+    //debug
+    if(!user){
+      return;
     }
-  };
-
-  const uploadSmellFile = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      
-      reader.onload = (e) => {
-        try {
-          const loadedData = JSON.parse(e.target.result);
-          setCurrentSmells(loadedData);
-
-          //rimuovo gli smell adesso assenti
-          const serv = services;
-          for(let service of serv){
-            service.smellsInstances = service.smellsInstances.filter((s)=> s.smell in loadedData);
-          }
-          
-        } catch (error) {
-          console.error('Error reading JSON file:', error);
-        }
-      };
-  
-      reader.readAsText(file);
+    const userId = user.uid;
+    const dataToSave = {
+      services: services,
+      teamColors: teamColors,
+      arcs: arcs.map(x => ({from: { name: x[0].name, key: x[0].key }, to: { name: x[1].name, key: x[1].key }})),
+      savedAt: new Date(),
+      zoom: zoom,
+      uid: userId
+    };
+    try {
+      await setDoc(doc(db, "Saves", user.uid), dataToSave);
+    } catch (error) {
+      console.error("File failed to upload:", error);
     }
   }
+
+  //Salva in cloud dopo tot
+  useEffect(()=>{
+    if (timeoutRef.current)
+      return;
+
+    timeoutRef.current = setTimeout(() => {
+      saveOnCloud();
+    }, 15000);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  },[services, teamColors, arcs])
+
+  //salva in cloud quando esci
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+      saveOnCloud();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
+
+  const uploadDataFromJson = (event) => {
+    const file = event.target.files[0];
+    event.target.value = null;
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          loadedData.current = JSON.parse(e.target.result);
+          if(!auth.currentUser || services.length ===0)
+            loadData(loadedData.current, true);
+          else
+            setUploadDialogOpen(true);
+        } catch (error) {
+          console.error('Error reading JSON file:', error);
+        }
+      };
+  
+      reader.readAsText(file);
+    }
+    saveOnCloud();
+  };
 
   const openDialog = (id) =>{
     dialogService.current = services.find((x)=>(x.key ===id));
@@ -440,7 +638,7 @@ export function FirstView({page, setPage, teamForChatBot}){
     serv.color = teamColors[team];
 
     //update della rilevanza
-    serv.smellsInstances = serv.smellsInstances.map((s) => ({smell:s.smell, effort:s.effort, originalImpact:s.originalImpact, impact : updatePriority(s,serv.relevance)}));
+    serv.smellsInstances = serv.smellsInstances.map((s) => ({smell:s.smell, effort:s.effort, impact : updatePriority(s,serv.relevance, serv.attributes)}));
 
     //aggiorno le informazioni
     setServices((prevServices) =>{
@@ -460,14 +658,20 @@ export function FirstView({page, setPage, teamForChatBot}){
     <div>
       {/*topbar*/}
       <div className="topnav">
-        <button onClick={toggleSidebar} className="toggle-btn">
-          {isSidebarVisible ? '←|' : '|→'}
+        { POuid === null &&
+          <button onClick={toggleSidebar} className="toggle-btn">
+            {isSidebarVisible ? '←|' : '|→'}
+          </button>
+        }
+
+        <button onClick={() => setLogoutDialogOpen(true)} className="logout" title="Logout" style={{left: "300px"}}>
+            <Icon icon="heroicons-solid:arrow-left-on-rectangle" width="30" height="30"/>
         </button>
 
         {/*checkbox*/}
         <div className="checkbox-container" style={{ marginLeft: "20px", color: 'white' }}>
           <label>
-            <b>Includes affected team:  </b>
+            <b>Team interactions:  </b>
             <input
               type="checkbox"
               checked={isCheckboxChecked}
@@ -478,9 +682,19 @@ export function FirstView({page, setPage, teamForChatBot}){
 
         {/*Link alle altre viste */}
         <div className="links">
-          <div style={{color:'#808080'}}><Icon icon="heroicons-solid:rectangle-group" /></div>
-          <div><Link to="/smellsPriority" style={{color:'#ffffff'}} state={{ data: dataToPersist}}><Icon icon="heroicons-solid:table-cells" /></Link></div>
-          <div><Link to="/refactoring" style={{color:'#ffffff'}} state={{ data: dataToPersist}}><Icon icon="heroicons-solid:magnifying-glass-plus" /></Link></div>
+          {/*solo se sono loggato*/}
+          {auth.currentUser && <div onClick={() => handleClick("/manageAccounts")} style={{ cursor: "pointer", color: '#ffffff' }}>
+            <Icon icon="heroicons-solid:user-plus" />
+          </div>}
+          <div style={{ color: '#808080' }}>
+            <Icon icon="heroicons-solid:rectangle-group" />
+          </div>
+          <div onClick={() => handleClick("/smellsPriority")} style={{ cursor: "pointer", color: '#ffffff' }}>
+            <Icon icon="heroicons-solid:table-cells" />
+          </div>
+          <div onClick={() => handleClick("/refactoring")} style={{ cursor: "pointer", color: '#ffffff' }}>
+            <Icon icon="heroicons-solid:magnifying-glass-plus" />
+          </div>
         </div>
         
          {/*cambia prospettiva */}
@@ -488,7 +702,7 @@ export function FirstView({page, setPage, teamForChatBot}){
           <label style={{ color: 'white' }}><b>View:</b> </label>
           <Select
             isMulti
-            options={Object.keys(teamColors).map((team) => ({ value: team, label: team }))}
+            options={POuid === null? Object.keys(teamColors).map((team) => ({ value: team, label: team })) : [{ value: POuid[1], label: POuid[1] }]}
             value={prospective}
             onChange={(selectedOptions) => {
               setProspective(selectedOptions);
@@ -529,7 +743,7 @@ export function FirstView({page, setPage, teamForChatBot}){
               type="text"
               placeholder="team"
               value={TeamName}
-              onChange={handleTeamChange}
+              onChange={POuid === null ? handleTeamChange : () => {}}
               maxLength="50"
             />
           </div>
@@ -550,17 +764,29 @@ export function FirstView({page, setPage, teamForChatBot}){
           <h2>File Management</h2>
           <button onClick={saveDataToJson}> Save to File</button>
           <br/><br/>
-          <div className="form-group">
-            <label><b>Upload Save File</b></label>
-            <input type="file" accept=".json" onChange={uploadDataFromJson} />
-          </div>
-          <div className="form-group">
-            <label><b>Upload Smell List</b></label>
-            <input type="file" accept=".json" onChange={uploadSmellFile} />
+          {POuid === null &&
+            <div className="form-group">
+              <label><b>Upload Save File</b></label>
+              <input type="file" accept=".json" onChange={uploadDataFromJson} />
+            </div>
+          }
+          {/*Zoom*/}
+          <br/>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input
+            type="range"
+            min="0.5"
+            max="1"
+            step="0.05"
+            value={zoom}
+            onChange={(e) => setZoom(parseFloat(e.target.value))}
+          />
+          <Icon icon="heroicons-solid:magnifying-glass-plus" width="30" height="30"/>
           </div>
         </div>
       )}
-      <div style={{ display: 'flex' }}>
+      {/*Nodi ed archi*/}
+      <div className='zoom-zone' style={{transform: `scale(${zoom})`}}>
         <div>
           {services.map((rect) => (
             renderThisService(rect) ?
@@ -580,21 +806,83 @@ export function FirstView({page, setPage, teamForChatBot}){
               isGeneratingNewArc={isGeneratingNewArc}
               addArc={generateNewLink}
               onOpenDialog={openDialog}
+              TeamLeader = {POuid? POuid[1] : null}
+              zoom={zoom}
             />: null
           ))}
-          </div>
-          <Lines nodes={arcs} newArc={newArc} prospective={prospective} isChecked={isCheckboxChecked}
-          onDeleteArc={onDeleteArc}/>
-        </div>
+          </div>   
+      </div>
+      <Lines nodes={arcs} newArc={newArc} prospective={prospective} isChecked={isCheckboxChecked} TeamLeader={POuid? POuid[1] : null}
+          onDeleteArc={onDeleteArc} zoom={zoom}/>
 
-        {/*dialog*/}
+        {/*dialog di modifica*/}
         <Dialog
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           onSave={updateService}
           service={dialogService}
           currentSmells={currentSmells}
+          TeamLeader={POuid? POuid[1] : null}
         />
+        {/*dialog di conferma eliminazione */}
+        {isConfirmDialogOpen && (
+          <div className="confirm-dialog-overlay">
+            <div className="confirm-dialog">
+              <div className="confirm-dialog-message">
+                Are you sure you want to delete this service?
+              </div>
+              <hr style={{width:"100%"}}/><br/>
+              <div className="confirm-buttons">
+                <button className="confirm-button-yes" onClick={confirmDelete}>Yes</button>
+                <button className="confirm-button-no" onClick={() => setIsConfirmDialogOpen(false)}>No</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/*dialog di conferma logout */}
+        {logoutDialogOpen && (
+          <div className="confirm-dialog-overlay">
+            <div className="confirm-dialog">
+              <div className="confirm-dialog-message">
+                Do you really want to log out?
+              </div>
+              <hr style={{width:"100%"}}/><br/>
+              <div className="confirm-buttons">
+                <button className="confirm-button-yes" onClick={handleLogout}>Yes</button>
+                <button className="confirm-button-no" onClick={() => setLogoutDialogOpen(false)}>No</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/*dialog per upload */}
+        {uploadDialogOpen && (
+          <div className="confirm-dialog-overlay">
+            <div className="confirm-dialog">
+              <div className="confirm-dialog-message">
+                You are currently logged in, uploading a file will replace the previous one, proceed?
+              </div>
+              <hr style={{width:"100%"}}/><br/>
+              <div className="confirm-buttons">
+                <button className="confirm-button-yes" onClick={() => {loadData(loadedData.current, true); setUploadDialogOpen(false)}}>Yes</button>
+                <button className="confirm-button-no" onClick={() => setUploadDialogOpen(false)}>No</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/*non posso eliminare il nodo */}
+        {nodeRejectionDialog && (
+          <div className="confirm-dialog-overlay">
+            <div className="confirm-dialog">
+              <div className="confirm-dialog-message">
+                You cannot delete a service that communicates with other teams.
+              </div>
+              <hr style={{width:"100%"}}/><br/>
+              <div className="confirm-buttons">
+                <button className="confirm-button-no" onClick={() => setNodeRejectionDialog(false)}>ok</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

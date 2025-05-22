@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function Lines({ nodes, newArc, prospective, onDeleteArc, isChecked }) { //nodes è un array di coppie
+function Lines({ nodes, newArc, prospective, onDeleteArc, isChecked, TeamLeader, zoom }) { //nodes è un array di coppie
   const [hoveredKey, setHoveredKey] = useState(null);
 
   //data una diversa prospettiva ti dice se renderizzare un arco
@@ -77,6 +77,7 @@ function Lines({ nodes, newArc, prospective, onDeleteArc, isChecked }) { //nodes
         const isHovered = hoveredKey === key;
 
         //aggiungi una linea tra i due servizi
+        const destroiable = TeamLeader != null && TeamLeader===service1.team && TeamLeader===service2.team;
         lines.push(
           <g key={`arc-${key}`}>
           {/*linea vera e propria*/}
@@ -99,10 +100,10 @@ function Lines({ nodes, newArc, prospective, onDeleteArc, isChecked }) { //nodes
             y2={endY}
             stroke="transparent"
             strokeWidth={12}
-            onMouseEnter={() => setHoveredKey(key)}
-            onMouseLeave={() => setHoveredKey(null)}
-            onClick={() => onDeleteArc(service1, service2)}
-            style={{ pointerEvents: "auto", cursor: "pointer" }}
+            onMouseEnter={!destroiable? null : () => setHoveredKey(key)}
+            onMouseLeave={!destroiable? null : () => setHoveredKey(null)}
+            onClick={!destroiable? null : () => onDeleteArc(service1, service2)}
+            style={!destroiable? null : { pointerEvents: "auto", cursor: "pointer" }}
           />
         </g>
         );
@@ -125,7 +126,13 @@ function Lines({ nodes, newArc, prospective, onDeleteArc, isChecked }) { //nodes
           <polygon points="0 0, 10 3.5, 0 7" fill="black" />
         </marker>
       </defs>
+      <g transform={`scale(${zoom})`}
+      style={{
+        transition: "transform 0.3s ease-in-out",
+        transformOrigin: "center left"
+      }}>
       {renderLines()}
+      </g>
     </svg>
   );
 }

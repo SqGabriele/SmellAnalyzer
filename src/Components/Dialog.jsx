@@ -1,25 +1,29 @@
 import { useEffect, useRef, useState } from "react";
 import "../style.css";
+import qualityAttributes from "../Config/QualityAttributes.json";
 
-const Dialog = ({ isOpen, onClose, onSave, service, currentSmells }) => {
+const Dialog = ({ isOpen, onClose, onSave, service, currentSmells, TeamLeader }) => {
   const dialogRef = useRef(null);
   const [name, setName] = useState("");
   const [team, setTeam] = useState("");
   const [smells, setSmells] = useState([]);
+  const [attributes, setAttributes] = useState({});
   const [serviceRelevance, setServiceRelevance] = useState("");
+  const [isThisTeamLeader, setIsThisTeamLeader] = useState(false);
 
   // Quando `isOpen` cambia, apri o chiudi il dialog
   useEffect(() => {
-
-   //if(service.current != null)
-   // console.log(service.current?.smellsInstances);
-
     if (isOpen) {
+      if(TeamLeader === null || TeamLeader === service.current?.team)
+        setIsThisTeamLeader(true);
+      else
+        setIsThisTeamLeader(false);
       dialogRef.current?.showModal();
       setName(service.current?.name);
       setTeam(service.current?.team);
       setSmells(service.current?.smellsInstances);
       setServiceRelevance(service.current?.relevance);
+      setAttributes(service.current?.attributes)
     } else {
       dialogRef.current?.close();
     }
@@ -30,7 +34,12 @@ const Dialog = ({ isOpen, onClose, onSave, service, currentSmells }) => {
 
     setSmells((prevProperties) => {
       if (checked) {
-        return [...prevProperties, {"smell":smell, "effort":"Low effort", "originalImpact":"None"}]; //aggiungi la proprietà selezionata
+        //crea la lista di effort
+        let eff = {};
+        for(let i of currentSmells[smell].refactoring)
+          eff[i] = "To define";
+
+        return [...prevProperties, {"smell":smell, "effort": eff, "originalImpact":"None"}]; //aggiungi la proprietà selezionata
       } else {
         return prevProperties.filter((smells) => smells["smell"] !== smell); //rimuovi la proprietà deselezionata
       }
@@ -43,7 +52,8 @@ const Dialog = ({ isOpen, onClose, onSave, service, currentSmells }) => {
       "name" : name,
       "team" : team,
       "relevance" : serviceRelevance,
-      "smellsInstances" : smells
+      "smellsInstances" : smells,
+      "attributes": attributes
     }
     onSave(updatedService);
     onClose();
@@ -65,12 +75,12 @@ const Dialog = ({ isOpen, onClose, onSave, service, currentSmells }) => {
                 maxLength="50"
             />
           </div>
-          <div> 
+          <div>
             <b>Team:</b>
             <input
                 type="text"
                 value={team}
-                onChange={(e) => setTeam(e.target.value)}
+                onChange={TeamLeader !== service.current.team? (e) => setTeam(e.target.value) : ()=>{}}
                 maxLength="50"
             />
           </div>
@@ -96,19 +106,27 @@ const Dialog = ({ isOpen, onClose, onSave, service, currentSmells }) => {
                 checked={smells.some((sm) => sm.smell === smell)} 
               />
               {smell}
+            </div>
+          ))}
+          </div>
+
+          {/*Quality Attributes*/}
+          <h3 style={{ color : "rgb(0, 132, 255)"}}>Set Quality Attributes Relevance:</h3>
+          <div className="smell-selection-container">
+          {qualityAttributes.map((attribute) => (
+            <div key={attribute} className="smell-item" style={{width:"100%"}}>
+              {attribute}
               
               <select
                 onChange={(event) => {
                   const impactValue = event.target.value;
-                  setSmells((prevSmells) =>
-                    prevSmells.map((s) =>
-                      s.smell === smell ? { ...s, originalImpact: impactValue } : s
-                    )
-                  );
+                  setAttributes((prevAttributes) => ({
+                    ...prevAttributes,
+                    [attribute]: impactValue
+                  }));
                 }}
                 value={(() => {
-                  const s = smells.find((sm) => sm.smell === smell);
-                  return s ? s.originalImpact : "None";
+                  return attributes[attribute] || "None";
                 })()} 
               >
                 <option value="None">None</option>
@@ -120,7 +138,7 @@ const Dialog = ({ isOpen, onClose, onSave, service, currentSmells }) => {
           ))}
           </div>
 
-        <button className="dialog-save" onClick={Save}>
+        <button className="dialog-save" onClick={!isThisTeamLeader? (()=>{return}) : Save} style={{cursor: !isThisTeamLeader ? "not-allowed" : "pointer", background: !isThisTeamLeader? "rgb(134, 134, 134)" : "hsl(216, 98.4%, 52.2%)"}}>
           Save
         </button>
       </div>

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Icon } from '@iconify/react';
 import "../style.css";
 
-function Service({ id, x, y, color , name, team, onDelete, smells, onPositionChange, updateRectSize, onGenerateArc, isGeneratingNewArc, addArc, onOpenDialog}) {
+function Service({ id, x, y, color , name, team, onDelete, smells, onPositionChange, updateRectSize, onGenerateArc, isGeneratingNewArc, addArc, onOpenDialog, TeamLeader, zoom}) {
   const [position, setPosition] = useState({ x, y });   //la posizione
   const [isDragging, setIsDragging] = useState(false);  //il dragging
   const serviceRef = useRef(null)
@@ -27,8 +27,8 @@ function Service({ id, x, y, color , name, team, onDelete, smells, onPositionCha
 
   const handleMouseMove = (e) => {
     if (isDragging) {
-      const newX = e.clientX - 75;
-      const newY = e.clientY - 75;
+      const newX = (e.clientX - 75)/zoom;
+      const newY = (e.clientY - 75)/zoom;
       setPosition({ x: newX, y: newY });
 
       //Passa la nuova posizione al componente padre
@@ -53,24 +53,30 @@ function Service({ id, x, y, color , name, team, onDelete, smells, onPositionCha
 
   //elimiza il service 
   const handleDelete = () => {
+    if(TeamLeader!== null && TeamLeader !== team)
+      return;
     onDelete(id, team); //notifica il genitore di eliminare il servizio
   };
 
   const newArc = () => {
+    if(TeamLeader!== null && TeamLeader !== team)
+      return;
     onGenerateArc(id);
   };
 
   const openDialog = () => {
+    if(TeamLeader!== null && TeamLeader !== team)
+      return;
     onOpenDialog(id);
   };
 
   return <div ref={serviceRef}
           className="service-container noselect" style={{ left: `${position.x}px`, top: `${position.y}px`, backgroundColor: color }} onMouseDown={handleMouseDown} >
-      <button className="service-button delete" onClick={handleDelete}>X</button>
-      <button className="service-button arc" onClick={newArc}>
+      <button className="service-button delete" onClick={handleDelete} style={{cursor: TeamLeader !== null? (TeamLeader !== team ? "not-allowed": "pointer") : "pointer"}}>X</button>
+      <button className="service-button arc" onClick={newArc} style={{cursor: TeamLeader !== null? (TeamLeader !== team ? "not-allowed": "pointer") : "pointer"}}>
         <Icon icon="heroicons-solid:arrow-trending-up" />
       </button>
-      <button className="service-button dialog" onClick={openDialog}>
+      <button className="service-button dialog" onClick={openDialog} style={{cursor: TeamLeader !== null? (TeamLeader !== team ? "not-allowed": "pointer") : "pointer"}}>
         <Icon icon="heroicons-solid:bars-3-bottom-left" />
       </button>
       <div className="service-text-container">
