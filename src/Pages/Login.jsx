@@ -9,18 +9,13 @@ import "../style.css";
 export function Login({setUid}) {
   //nota: email2, password2 ... fanno riferimento al login come team leader
   const [email, setEmail] = useState("");
-  const [email2, setEmail2] = useState("");
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
-  const [password2, setPassword2] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [seePassword, setSeePassword] = useState("");
-  const [seePassword2, setSeePassword2] = useState("");
   const [seeConfirmPassword, setSeeConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const [error2, setError2] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
-  const [teamName, setTeamName] = useState("");
 
   useEffect(() =>{
     localStorage.setItem("POuid", null);
@@ -47,10 +42,18 @@ export function Login({setUid}) {
     }
 
     try {
-      if (isRegistering) {
-        await createUserWithEmailAndPassword(auth, email, password);
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
+      if (isRegistering) {  //registrazione
+        if(email.includes("/"))
+          throw new Error('The character "/" is not allowed');
+        else if(email.includes("@"))
+          throw new Error('The character "@" is not allowed');
+        await createUserWithEmailAndPassword(auth, email+"@smell.com", password);
+      } 
+      else if (email.includes("/")){  //login come teamleader
+        return handleSubmitTeam();
+      }
+      else {  //login amministratore
+        await signInWithEmailAndPassword(auth, email+"@smell.com", password);
       }
       navigate("/graph");
     } catch (err) {
@@ -69,32 +72,32 @@ export function Login({setUid}) {
   };
 
   //per i teamLeader
-  const handleSubmitTeam = async (e) => {
-    e.preventDefault();
+  const handleSubmitTeam = async () => {
     setError("");
 
     try {
       const db = getFirestore();
-      const docRef = doc(db, "TeamAccounts", email2);
+      const name = email.split("/");
+      const docRef = doc(db, "TeamAccounts", name[0]+"@smell.com");
       const docSnap = await getDoc(docRef);
       let uid=null;
 
       if (docSnap.exists()) {
           const savedData = docSnap.data();
-          if(!savedData.teams.some(team => team.name === teamName && team.password === password2))
+          if(!savedData.teams.some(team => team.name === name[1] && team.password === password))
             throw new Error("Auth Error");
           uid = savedData.uid;
       } 
       else 
         throw new Error("Auth Error");
 
-      const userInfo = [uid, teamName];
+      const userInfo = [uid, name[1]];
       localStorage.setItem("POuid", JSON.stringify(userInfo));
       setUid(userInfo);
       await signOut(auth);
       navigate("/graph");
     } catch (err) {
-      setError2(err.message);
+      setError(err.message);
     }
   };
 
@@ -104,8 +107,8 @@ export function Login({setUid}) {
         <h2>{isRegistering ? "Sign Up" : "Login"}</h2>
         <form onSubmit={handleSubmit}>
           <input
-            type="email"
-            placeholder="Email"
+            type="text"
+            placeholder="User"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -176,48 +179,6 @@ export function Login({setUid}) {
             {isRegistering ? "Login" : "Sign Up"}
           </button>
         </p>
-      </div>
-
-      {/*Login come team leader */}
-      <div className="login-box">
-        <h2>Login as Team Leader</h2>
-        <form onSubmit={handleSubmitTeam}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email2}
-            onChange={(e) => setEmail2(e.target.value)}
-            required
-            className="login-input"
-          />
-          <input
-            type="text"
-            placeholder="Team"
-            value={teamName}
-            onChange={(e) => setTeamName(e.target.value)}
-            required
-            className="login-input"
-          />
-          <div className="password-container">
-            <input
-              type= {seePassword2 ? "text" : "password"}
-              placeholder="Password"
-              value={password2}
-              onChange={(e) => setPassword2(e.target.value)}
-              required
-              className="login-input"
-            />
-            <span onClick={() => setSeePassword2(!seePassword2)} className="login-eye-icon">
-                <Icon
-                    icon={seePassword2 ? "heroicons-solid:eye-slash" : "heroicons-solid:eye"}
-                    className="eye"
-                />
-              </span>
-          </div>
-          <button type="submit" className="login-button">Login</button>
-
-          {error2 && <p className="error-text">{error2}</p>}
-        </form>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Icon } from '@iconify/react';
-import { useState, useEffect } from "react";
+import { useState, useEffect,useRef } from "react";
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { signOut, getAuth, onAuthStateChanged} from "firebase/auth";
@@ -16,6 +16,7 @@ export function ManageAccounts() {
     const [teams, setTeams] = useState([]);
     const [newTeam, setNewTeam] = useState({ name: "", password: "", show: false });
     const [modified, setModified] = useState(false); //mostra il pulsante di salvataggio
+    const name = useRef(auth.currentUser.email.split("@")[0]);
 
     //ricarica i dati
     useEffect(() => {
@@ -122,7 +123,7 @@ export function ManageAccounts() {
                 <div className="team-list">
                     {teams.map((team, index) => (
                     <div className="team-entry" key={index}>
-                        <span className="team-name">{team.name}</span>
+                        <span className="team-name">{name.current}/{team.name}</span>
                         <input
                         type={team.show ? "text" : "password"}
                         value={team.password}

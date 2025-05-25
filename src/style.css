@@ -22,7 +22,7 @@ h2 {
 
 .grid-container {
   display: grid;
-  grid-template-columns: 150px repeat(4, 1fr); /* 1 colonna per l'urgency + 4 per l'effort */
+  grid-template-columns: 150px repeat(3, 1fr); /* 1 colonna per l'urgency + 4 per l'effort */
   grid-template-rows: 50px repeat(7, 1fr); /* 1 riga per l'intestazione + 8 per l'urgency */
   text-align: center;
   border: 2px solid black;
@@ -265,6 +265,25 @@ h2 {
   justify-content: space-between;
   align-items: center;
   gap: 10px;
+}
+
+.undefined-effort-section {
+  margin-top: 2rem;
+  padding: 1rem 5rem;
+  background-color: #f9f9f9;
+  border-top: 2px solid #ccc;
+}
+
+.undefined-effort-section h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.undefined-effort-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .refactor-text {
@@ -671,7 +690,7 @@ input[type="file"] {
 /*login*/
 
 .login-container { 
-  min-height: 100vh;
+  min-height: 80vh;
   display: flex;
   justify-content: center;
   gap: 1rem;
@@ -686,8 +705,8 @@ input[type="file"] {
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 450px;
-  max-height: 450px;
+  max-width: 500px;
+  max-height: 500px;
   box-sizing: border-box;
 }
 
@@ -697,7 +716,7 @@ input[type="file"] {
   margin-bottom: 1rem;
   border-radius: 4px;
   border: 1px solid #ccc;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   font-family: Verdana, sans-serif;
   box-sizing: border-box;
 }
@@ -714,7 +733,7 @@ input[type="file"] {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 1.2rem;
   margin-bottom: 0.75rem;
 }
 
@@ -726,7 +745,7 @@ input[type="file"] {
   border: 1px solid #999;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 1.2rem;
 }
 
 .error-text {

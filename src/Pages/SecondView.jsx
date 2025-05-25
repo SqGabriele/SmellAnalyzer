@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Icon } from '@iconify/react';
 import { useNavigate } from "react-router-dom";
-import { signOut } from "firebase/auth";
+import { signOut, getAuth } from "firebase/auth";
+import { getFirestore, setDoc, doc } from "firebase/firestore";
 import { auth } from "../firebase";
 import React from "react";
 import Select from "react-select";
@@ -15,7 +16,7 @@ export function SecondView({page, setPage, POuid}) {
   const data = location.state?.data || {};
 
   const priorityLevels = ["High", "Medium to High", "Medium", "Low to Medium", "Low", "None to Low", "None"];
-  const effortLevels = ["High effort", "Medium effort", "Low effort", "To define"];
+  const effortLevels = ["High effort", "Medium effort", "Low effort"];
 
   //smells recuperati dai dati
   const [service, setService] = useState(data.services || []);
@@ -74,15 +75,38 @@ export function SecondView({page, setPage, POuid}) {
       //calcolo il nuovo valore dell'effort
       let val = effortLevels.indexOf(updatedSmell.effort[refact]);
       val = val + increment;
-      if (val < 0) val = 3;
-      else if (val > 3) val = 0;
+      if (val < 0) val = 2;
+      else if (val > 2) val = 0;
   
       //aggiorna l'effort
       updatedSmell.effort[refact] = effortLevels[val];
   
       return newService;
     });
+    setTimeout(() => {saveOnCloud();},0);
   };
+
+  //salva in cloud
+  const saveOnCloud = async() =>{
+    const auth = getAuth();
+    const db = getFirestore();
+    const user = auth.currentUser;
+  
+    const userId = user!==null ? user.uid : POuid[0];
+    const dataToSave = {
+      services: data.services,
+      teamColors: data.teamColors,
+      arcs: data.arcs.map(x => ({from: { name: x[0].name, key: x[0].key }, to: { name: x[1].name, key: x[1].key }})),
+      savedAt: new Date(),
+      zoom: data.zoom,
+      uid: userId
+    };
+    try {
+      await setDoc(doc(db, "Saves", userId), dataToSave);
+    } catch (error) {
+      console.error("File failed to upload:", error);
+    }
+  }
 
   const handleLogout = async () => {
     try {
@@ -141,6 +165,22 @@ export function SecondView({page, setPage, POuid}) {
     data.effort = effort;
     return data;
   }
+
+  //controlla ci siano refactor da definire
+  const undefinedEffortItems = [];
+  service.forEach((r, serviceIndex) => {
+    r.smellsInstances.forEach((smell, smellIndex) => {
+      const refactors = smellList.current[smell.smell].refactoring;
+      refactors.forEach((refact, refactorIndex) => {
+        if (smell.effort[refact] === "To define" && selectedTeams.some(team => team.value === r.team)) {
+          if (!alreadyPlaced(r.smellsInstances, refact, smell)) {
+            undefinedEffortItems.push({ serviceIndex, smellIndex, refactorIndex, r, smell, refact });
+          }
+        }
+      });
+    });
+  });
+  const noUndefinedEfforts = undefinedEffortItems.length === 0;
 
   return (
     <div>
@@ -291,6 +331,48 @@ export function SecondView({page, setPage, POuid}) {
           ))}
         </div>
       </div>
+      {/*sezione refactoring senza effort */}
+      <div className="undefined-effort-section">
+        <h3 style={{ textAlign: 'center', fontSize: '1.5rem', color: '#333', marginBottom: '1rem' }}>Refactoring without defined effort</h3>
+        <br/>
+        {noUndefinedEfforts ? (
+          <p style={{ textAlign: 'center', fontStyle: 'italic', color: '#555' }}>
+            All refactorings have an assigned effort!
+          </p>) : (
+          <div className="undefined-effort-list">
+            {undefinedEffortItems.map(({ serviceIndex, smellIndex, refactorIndex, r, smell, refact }, i) => (
+              <div key={i} className="smell-box" style={{ backgroundColor: r.color }}>
+                <div className="smell-content">
+                  <button onClick={() => updateEffort(serviceIndex, smellIndex, refactorIndex, -1)}>&lt;</button>
+                  <span className="refactor-text">{refact}</span>
+                  <button onClick={() => updateEffort(serviceIndex, smellIndex, refactorIndex, 1)}>&gt;</button>
+                </div>
+                <div className="service-name">Service: {r.name}</div>
+                <div className="team-icons">
+                  {Array.from(affectedTeam(r)).map((team, idx) => (
+                    <Icon
+                      icon="heroicons-solid:user"
+                      key={idx}
+                      className="team-icon"
+                      style={{
+                        color: data.teamColors[team],
+                        width: '25px',
+                        height: '25px',
+                        borderRadius: '30%',
+                        margin: '2px',
+                        filter: 'drop-shadow(0px 0px 1px black)',
+                      }}
+                      title={team}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+
       
       {/*overlay per i team*/}
       {hoveredSmell && (

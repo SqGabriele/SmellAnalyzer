@@ -23,5 +23,30 @@
     "refactoring": ["Encrypt all Sensitive Data at Rest"],
     "qualityAttributes": ["Confidentiality","Integrity","Authenticity"],
     "positiveQualityAttributes": []
-    }
+  },
+  "Hardcoded Secrets": {
+    "refactoring": ["Encrypt Secrets at Rest"],
+    "qualityAttributes": ["Confidentiality","Integrity","Authenticity"],
+    "positiveQualityAttributes": []
+  },
+  "Non-Secured Service-to-Service Communications": {
+    "refactoring": ["Use of Mutual Transport Layer Security"],
+    "qualityAttributes": ["Confidentiality","Integrity","Authenticity","Analysability"],
+    "positiveQualityAttributes": []
+  },
+  "Unauthenticated Traffic": {
+    "refactoring": ["Use of Mutual Transport Layer Security","OpenID Connect"],
+    "qualityAttributes": ["Authenticity"],
+    "positiveQualityAttributes": []
+  },
+  "Multiple User Authentication": {
+    "refactoring": ["Use Single Sign-On"],
+    "qualityAttributes": ["Authenticity","Modifiability","Testability"],
+    "positiveQualityAttributes": []
+  },
+  "Centralized Authorization": {
+    "refactoring": ["Use Decentralized Authorization"],
+    "qualityAttributes": ["Authenticity","Time Behaviour"],
+    "positiveQualityAttributes": ["Testability"]
+  }
 }

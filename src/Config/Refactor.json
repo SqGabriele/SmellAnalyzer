@@ -18,5 +18,25 @@
     "Encrypt all Sensitive Data at Rest": {
       "affectOnInteraction": false,
       "affectOnInteracted": true
+    },
+    "Encrypt Secrets at Rest": {
+      "affectOnInteraction": false,
+      "affectOnInteracted": true
+    },
+    "Use of Mutual Transport Layer Security": {
+      "affectOnInteraction": true,
+      "affectOnInteracted": true
+    },
+    "OpenID Connect": {
+      "affectOnInteraction": false,
+      "affectOnInteracted": true
+    },
+    "Use Single Sign-On": {
+      "affectOnInteraction": false,
+      "affectOnInteracted": false
+    },
+    "Use Decentralized Authorization": {
+      "affectOnInteraction": false,
+      "affectOnInteracted": false
     }
 }

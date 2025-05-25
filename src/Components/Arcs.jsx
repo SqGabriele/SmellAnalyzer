@@ -77,7 +77,7 @@ function Lines({ nodes, newArc, prospective, onDeleteArc, isChecked, TeamLeader,
         const isHovered = hoveredKey === key;
 
         //aggiungi una linea tra i due servizi
-        const destroiable = TeamLeader != null && TeamLeader===service1.team && TeamLeader===service2.team;
+        const destroiable = TeamLeader === null || (TeamLeader===service1.team && TeamLeader===service2.team);
         lines.push(
           <g key={`arc-${key}`}>
           {/*linea vera e propria*/}

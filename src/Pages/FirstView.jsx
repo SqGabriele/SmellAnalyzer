@@ -208,27 +208,38 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
       setArcs(loadedData.arcs || []);
     else
       setArcs(loadedData.arcs.map(x=> [loadedData.services.find(s => s.key===x.from.key),loadedData.services.find(s => s.key===x.to.key)]) || [])
-    setTeamColors(loadedData.teamColors || {});
+    const updatedTeamColors = { ...(loadedData.teamColors || {}) };
+    setTeamColors(updatedTeamColors);
     setIsCheckboxChecked(loadedData.checkboxOption || false);
     for(let color of Object.keys(loadedData.teamColors)){
       const c = loadedData.teamColors[color];
       if(presetColors.current[c] !== undefined)
         presetColors.current[c] = true;
+    }
     setIsDataLoaded(true);
-  }
 
-  //cambia prospettiva
-  if(fromSave){
-    const newTeams = new Set();
-    if(data?.team)
-      data.team = [];
-    teamCounter.current = {};
-    (loadedData.services || []).forEach((x) => {
-      addToTeam(x.team, false);
-      newTeams.add(x.team);
-    });
-    setProspective([...newTeams].map(t => ({ value: t, label: t })));
-  } 
+    //cambia prospettiva
+    if(fromSave){
+      const newTeams = new Set();
+      if(data?.team)
+        data.team = [];
+      teamCounter.current = {};
+      (loadedData.services || []).forEach((x) => {
+        addToTeam(x.team, false);
+        newTeams.add(x.team);
+      });
+      setProspective([...newTeams].map(t => ({ value: t, label: t })));
+
+      //rimuovi teamColor non presenti in teamCounter (ulteriore controllo)
+      const teamKeys = Object.keys(updatedTeamColors);
+      for (let team of teamKeys) {
+        if (!teamCounter.current.hasOwnProperty(team)) {
+          delete updatedTeamColors[team];
+        }
+      }
+
+      setTeamColors({ ...updatedTeamColors });
+    } 
 };
 
   //leggi gli smell dal json di default
@@ -414,6 +425,7 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
       setArcs((prevArcs) => prevArcs.filter((arc) => arc[0].key !== s.id && arc[1].key !== s.id));
       setServiceToDelete(null);
       setIsConfirmDialogOpen(false);
+      setTimeout(() => {saveOnCloud();},0);
     }
   };
 
@@ -444,6 +456,7 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
 
     if(firstNode !== undefined && secondNode !== undefined)
       setArcs((prevArcs) => [...prevArcs, [firstNode, secondNode]]);
+    setTimeout(() => {saveOnCloud();},0);
   };
 
   const selectingArc = (startService) => {
@@ -463,6 +476,7 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
       (pair) => !(pair[0].key === service1.key && pair[1].key === service2.key)
     );
     setArcs(updatedNodes);
+    setTimeout(() => {saveOnCloud();},0);
   }
 
   //funzione per aggiornare la posizione del servizio
@@ -550,12 +564,8 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
     const auth = getAuth();
     const db = getFirestore();
     const user = auth.currentUser;
-
-    //debug
-    if(!user){
-      return;
-    }
-    const userId = user.uid;
+  
+    const userId = user!==null ? user.uid : POuid[0];
     const dataToSave = {
       services: services,
       teamColors: teamColors,
@@ -565,7 +575,7 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
       uid: userId
     };
     try {
-      await setDoc(doc(db, "Saves", user.uid), dataToSave);
+      await setDoc(doc(db, "Saves", userId), dataToSave);
     } catch (error) {
       console.error("File failed to upload:", error);
     }
@@ -651,6 +661,7 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
           return s;
         });
     });
+    setTimeout(() => {saveOnCloud();},0);
   }
 
 
