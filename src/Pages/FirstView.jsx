@@ -561,6 +561,7 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
 
   //salva in cloud
   const saveOnCloud = async() =>{
+    if(services.length === 0) return;
     const auth = getAuth();
     const db = getFirestore();
     const user = auth.currentUser;
@@ -588,7 +589,7 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
 
     timeoutRef.current = setTimeout(() => {
       saveOnCloud();
-    }, 15000);
+    }, 5000);
 
     return () => {
       if (timeoutRef.current) {

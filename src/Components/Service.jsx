@@ -28,7 +28,7 @@ function Service({ id, x, y, color , name, team, onDelete, smells, onPositionCha
   const handleMouseMove = (e) => {
     if (isDragging) {
       const newX = (e.clientX - 75)/zoom;
-      const newY = (e.clientY - 75)/zoom;
+      const newY = (e.clientY - 75/zoom);
       setPosition({ x: newX, y: newY });
 
       //Passa la nuova posizione al componente padre
