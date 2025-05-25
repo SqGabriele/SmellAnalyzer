@@ -10,7 +10,7 @@ function Service({ id, x, y, color , name, team, onDelete, smells, onPositionCha
   useEffect(() => {
     if (serviceRef.current) {
       const { width, height } = serviceRef.current.getBoundingClientRect();
-      updateRectSize(id,{ width, height })
+      updateRectSize(id,{ width:width/zoom, height:height/zoom })
     }
   }, []);
 

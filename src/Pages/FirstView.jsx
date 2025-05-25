@@ -202,7 +202,6 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
 
   //ripristina lo stato con i dati caricati
   const loadData = (loadedData, fromSave=false) => {
-    setZoom(loadedData.zoom || 1)
     setServices(loadedData.services || []);
     if(!fromSave)
       setArcs(loadedData.arcs || []);
@@ -271,7 +270,7 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
         setNewArc(prevArc => {
           const [start, _] = prevArc.arcPosition;
           return { 
-            arcPosition: [start, { x: ev.clientX, y: ev.clientY }],
+            arcPosition: [start, { x: ev.clientX/zoom, y: ev.clientY/zoom }],
             startService: prevArc.startService
           };
         });
@@ -460,8 +459,9 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
   };
 
   const selectingArc = (startService) => {
+    const mouse = {x: mousePosition.x/zoom, y: mousePosition.y}
     setNewArc({
-      "arcPosition": [mousePosition,mousePosition],
+      "arcPosition": [mouse, mouse],
       "startService":startService
     })
   }
@@ -544,7 +544,6 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
     services: services,
     teamColors: teamColors,
     arcs: arcs.map(x => ({from: { name: x[0].name, key: x[0].key }, to: { name: x[1].name, key: x[1].key }})),
-    zoom: zoom
   };
 
   //salva un file json con i dati inseriti
@@ -558,7 +557,8 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
     a.click();
     URL.revokeObjectURL(url);
   };
-
+  //console.log("height: " +services[0]?.size.height+" zoom: "+zoom )
+  
   //salva in cloud
   const saveOnCloud = async() =>{
     if(services.length === 0) return;
@@ -572,7 +572,6 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
       teamColors: teamColors,
       arcs: arcs.map(x => ({from: { name: x[0].name, key: x[0].key }, to: { name: x[1].name, key: x[1].key }})),
       savedAt: new Date(),
-      zoom: zoom,
       uid: userId
     };
     try {

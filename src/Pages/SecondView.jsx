@@ -98,7 +98,6 @@ export function SecondView({page, setPage, POuid}) {
       teamColors: data.teamColors,
       arcs: data.arcs.map(x => ({from: { name: x[0].name, key: x[0].key }, to: { name: x[1].name, key: x[1].key }})),
       savedAt: new Date(),
-      zoom: data.zoom,
       uid: userId
     };
     try {
