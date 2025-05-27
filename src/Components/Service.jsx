@@ -72,14 +72,14 @@ function Service({ id, x, y, color , name, team, onDelete, smells, onPositionCha
 
   return <div ref={serviceRef}
           className="service-container noselect" style={{ left: `${position.x}px`, top: `${position.y}px`, backgroundColor: color }} onMouseDown={handleMouseDown} >
-      <button className="service-button delete" onClick={handleDelete} style={{cursor: TeamLeader !== null? (TeamLeader !== team ? "not-allowed": "pointer") : "pointer"}}>X</button>
-      <button className="service-button arc" onClick={newArc} style={{cursor: TeamLeader !== null? (TeamLeader !== team ? "not-allowed": "pointer") : "pointer"}}>
+      <button className="service-button delete noselect" onClick={handleDelete} style={{cursor: TeamLeader !== null? (TeamLeader !== team ? "not-allowed": "pointer") : "pointer"}}>X</button>
+      <button className="service-button arc noselect" onClick={newArc} style={{cursor: TeamLeader !== null? (TeamLeader !== team ? "not-allowed": "pointer") : "pointer"}}>
         <Icon icon="heroicons-solid:arrow-trending-up" />
       </button>
-      <button className="service-button dialog" onClick={openDialog} style={{cursor: TeamLeader !== null? (TeamLeader !== team ? "not-allowed": "pointer") : "pointer"}}>
+      <button className="service-button dialog noselect" onClick={openDialog} style={{cursor: TeamLeader !== null? (TeamLeader !== team ? "not-allowed": "pointer") : "pointer"}}>
         <Icon icon="heroicons-solid:bars-3-bottom-left" />
       </button>
-      <div className="service-text-container">
+      <div className="service-text-container noselect">
         <p><b>Service:</b> {name}</p>
         <p><b>Team:</b> {team}</p>
         <p><b>Smell:</b> {smells.length}</p>

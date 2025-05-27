@@ -42,6 +42,7 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
   const loadedData = useRef(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [zoom, setZoom] = useState(data?.zoom || 1);
+  const [newNodeDialog, setNewNodeDialog] = useState(false);
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
@@ -737,53 +738,26 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
       {/*Sidebar */}
       {isSidebarVisible && (
         <div className="sidebar">
-          <h2>New Microservice</h2>
-          <div className="form-group">
-            <label>Service Name</label>
-            <input
-              type="text"
-              placeholder="service"
-              value={serviceName}
-              onChange={handleNameChange}
-              maxLength="50"
-            />
-          </div>
-          <div className="form-group">
-            <label>Team Name</label>
-            <input
-              type="text"
-              placeholder="team"
-              value={TeamName}
-              onChange={POuid === null ? handleTeamChange : () => {}}
-              maxLength="50"
-            />
-          </div>
-          <div className="form-group">
-            <label>Service Relevance</label>
-            <select
-              value={serviceRelevance}
-              onChange={(e) => setServiceRelevance(e.target.value)}
-            >
-              <option value="None">None</option>
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-            </select>
-          </div>
-          <button onClick={generateService}> Create Microservice</button>
-          <hr />
-          <h2>File Management</h2>
-          <button onClick={saveDataToJson}> Save to File</button>
-          <br/><br/>
+          <h3 style={{marginTop:"30px"}}>Graph management</h3>
+          <button style={{marginBottom:"10px",marginTop:"10px"}} onClick={()=>setNewNodeDialog(true)}> Add Microservice</button>
+          <button style={{marginBottom:"10px"}} onClick={saveDataToJson}> Save to File</button>
           {POuid === null &&
             <div className="form-group">
-              <label><b>Upload Save File</b></label>
-              <input type="file" accept=".json" onChange={uploadDataFromJson} />
+              <input
+                id="file-upload"
+                type="file"
+                accept=".json"
+                onChange={uploadDataFromJson}
+                style={{ display: "none" }}
+              />
+              <button onClick={() => document.getElementById('file-upload').click()}>
+                Upload Save File
+              </button>
             </div>
           }
           {/*Zoom*/}
-          <br/>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <hr style={{marginTop:"50px" }}/>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px'}}>
           <input
             type="range"
             min="0.5"
@@ -891,6 +865,49 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
               <div className="confirm-buttons">
                 <button className="confirm-button-no" onClick={() => setNodeRejectionDialog(false)}>ok</button>
               </div>
+            </div>
+          </div>
+        )}
+        {/*aggiungi nodo */}
+        {newNodeDialog && (
+          <div className="confirm-dialog-overlay">
+            <div className="confirm-dialog" style={{position: "relative"}}>
+              <button className="service-button delete" onClick={()=>setNewNodeDialog(false)} style={{position: "absolute", top: "15px", right: "15px"}}>X</button>
+              <h2 style={{ color : "rgb(0, 132, 255)"}}>New Microservice</h2>
+              <hr/><br/>
+              <div className="form-group">
+                <label><b>Service Name</b></label>
+                <input
+                  type="text"
+                  placeholder="Service"
+                  value={serviceName}
+                  onChange={handleNameChange}
+                  maxLength="50"
+                />
+              </div>
+              <div className="form-group">
+                <label><b>Team Name</b></label>
+                <input
+                  type="text"
+                  placeholder="Team"
+                  value={TeamName}
+                  onChange={POuid === null ? handleTeamChange : () => {}}
+                  maxLength="50"
+                />
+              </div>
+              <div className="form-group">
+                <label><b>Service Relevance</b></label>
+                <select
+                  value={serviceRelevance}
+                  onChange={(e) => setServiceRelevance(e.target.value)}
+                >
+                  <option value="None">None</option>
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+              <button onClick={()=>{generateService(); setNewNodeDialog(false)}}> Create Microservice</button>
             </div>
           </div>
         )}

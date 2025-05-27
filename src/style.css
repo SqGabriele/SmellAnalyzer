@@ -171,6 +171,12 @@ h2 {
   align-items: center;
 }
 
+.confirm-dialog hr {
+  border: none;
+  border-top: 1px solid #000000;
+  width: 100%;
+}
+
 .confirm-dialog-message {
   margin-bottom: 20px;
   font-size: 16px;
@@ -434,9 +440,33 @@ input[type="file"] {
 }
 
 .form-group {
-  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px; 
+  margin-bottom: 10px;
+  gap: 16px;
 }
 
+.form-group label {
+  width: 160px;
+  white-space: nowrap;
+  flex: 0 0 150px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group select {
+  background-color: #ececec;
+  flex: 1;
+  padding: 6px 8px;
+  min-width: 300px; 
+  line-height: 1.5;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.confirm-dialog label,
 .sidebar label {
   display: block;
   font-weight: 500;
@@ -448,6 +478,8 @@ input[type="file"] {
   font-size: 0.9rem;
 }
 
+.confirm-dialog input,
+.confirm-dialog select,
 .sidebar input,
 .sidebar select {
   width: 100%;
@@ -457,6 +489,7 @@ input[type="file"] {
   font-size: 14px;
 }
 
+.confirm-dialog button,
 .sidebar button {
   width: 100%;
   padding: 10px;
@@ -471,8 +504,22 @@ input[type="file"] {
   transition: background-color 0.3s;
 }
 
+.confirm-dialog button:hover,
 .sidebar button:hover {
   background-color: #c00000;
+}
+
+.confirm-dialog button.delete {
+  all: unset;
+  position: absolute;
+  background-color: red;
+  color: white;
+  border: none;
+  width: 25px;
+  height: 25px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 16px;
 }
 
 .sidebar hr {

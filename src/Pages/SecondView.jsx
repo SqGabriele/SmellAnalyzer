@@ -409,19 +409,22 @@ export function SecondView({page, setPage, POuid}) {
         <div className="confirm-dialog-overlay">
           <div className="confirm-dialog" style={{position: "relative"}}>
             <button className="service-button delete" onClick={()=>setServiceEdit(null)} style={{position: "absolute", top: "15px", right: "15px"}}>X</button>
-            <h2>{smellList.current[service[serviceEdit[0]].smellsInstances[serviceEdit[1]].smell].refactoring[serviceEdit[2]]}</h2>
+            <h2 style={{ color : "rgb(0, 132, 255)"}}>{smellList.current[service[serviceEdit[0]].smellsInstances[serviceEdit[1]].smell].refactoring[serviceEdit[2]]}</h2>
             <hr style={{width:"100%"}}/><br/>
             <div style={{fontSize:"17px"}}>
-              <div><span className="label"><b>Service:</b></span> {serviceEdit[3]}</div><br/>
-              <div><span className="label"><b>Team:</b></span> {service[serviceEdit[0]].team}</div><br/>
-              <div><span className="label"><b>Urgency:</b></span> {serviceEdit[4]}</div><br/>
-              <div><span className="label"><b>Effort: </b>
+              <div className="form-group"><b>Service:</b>{serviceEdit[3]}</div><br/>
+              <div className="form-group"><b>Team:</b> {service[serviceEdit[0]].team}</div><br/>
+              <div className="form-group"><b>Urgency:</b>{serviceEdit[4]}</div><br/>
+              <div className="form-group"><b>Effort: </b>
               <select className="custom-select" value={serviceEdit[5]} onChange={(e) => {updateEffort(e.target.value);serviceEdit[5]=e.target.value}}>
                 <option value="High effort">High effort</option>
                 <option value="Medium effort">Medium effort</option>
                 <option value="Low effort">Low effort</option>
                 <option value="To define">Not specified </option>
-              </select></span></div><br/>
+              </select></div><br/>
+              <button className="dialog-save" onClick={()=>setServiceEdit(null)}>
+                Save
+              </button>
             </div>
           </div>
         </div>
