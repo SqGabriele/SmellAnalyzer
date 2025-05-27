@@ -226,7 +226,7 @@ export function SecondView({page, setPage, POuid}) {
 
       {/*sliders*/}
       <br/><br/><br/>
-      <div style={{ width: "80%", padding: "1rem 5rem", display: "flex", justifyContent: "center" }}>
+      <div style={{ width: "100%", padding: "1rem 5rem", display: "flex", justifyContent: "center" }}>
         <div style={{ width: "80%" }}>
           <ReactSlider
             value={effort}
