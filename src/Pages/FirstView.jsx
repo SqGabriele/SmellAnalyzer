@@ -565,6 +565,8 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
     const auth = getAuth();
     const db = getFirestore();
     const user = auth.currentUser;
+    if(POuid === null && user===null)
+      return;
   
     const userId = user!==null ? user.uid : POuid[0];
     const dataToSave = {
@@ -669,11 +671,9 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
     <div>
       {/*topbar*/}
       <div className="topnav">
-        { POuid === null &&
-          <button onClick={toggleSidebar} className="toggle-btn">
-            {isSidebarVisible ? '←|' : '|→'}
-          </button>
-        }
+        <button onClick={toggleSidebar} className="toggle-btn">
+          {isSidebarVisible ? '←|' : '|→'}
+        </button>
 
         <button onClick={() => setLogoutDialogOpen(true)} className="logout" title="Logout" style={{left: "300px"}}>
             <Icon icon="heroicons-solid:arrow-left-on-rectangle" width="30" height="30"/>

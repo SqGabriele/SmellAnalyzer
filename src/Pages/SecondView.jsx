@@ -27,6 +27,7 @@ export function SecondView({page, setPage, POuid}) {
   const [urgency, setUrgency] = useState(data.urgency);
   const [effort, setEffort] = useState(data.effort);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [serviceEdit, setServiceEdit] = useState(null);
 
   //naviga grazie al chatbot
   useEffect(() => {
@@ -62,28 +63,25 @@ export function SecondView({page, setPage, POuid}) {
     }
   }, [page]);
 
+  useEffect(()=>{
+    saveOnCloud();
+  },[service]);
+
   //aumenta o diminuisce l'effort
-  const updateEffort = (serviceIndex, smellIndex, refactorIndex, increment) => {
+  const updateEffort = (newEffort) => {
     setHoveredSmell(null);
     setService((prevService) => {
       const newService = [...prevService];
-      const updatedSmell = newService[serviceIndex].smellsInstances[smellIndex];
+      const updatedSmell = newService[serviceEdit[0]].smellsInstances[serviceEdit[1]];
 
-      const smellName = newService[serviceIndex].smellsInstances[smellIndex].smell;
-      const refact = smellList.current[smellName].refactoring[refactorIndex];
-      
-      //calcolo il nuovo valore dell'effort
-      let val = effortLevels.indexOf(updatedSmell.effort[refact]);
-      val = val + increment;
-      if (val < 0) val = 2;
-      else if (val > 2) val = 0;
+      const smellName = newService[serviceEdit[0]].smellsInstances[serviceEdit[1]].smell;
+      const refact = smellList.current[smellName].refactoring[serviceEdit[2]];
   
       //aggiorna l'effort
-      updatedSmell.effort[refact] = effortLevels[val];
+      updatedSmell.effort[refact] = newEffort;
   
       return newService;
     });
-    setTimeout(() => {saveOnCloud();},0);
   };
 
   //salva in cloud
@@ -91,6 +89,8 @@ export function SecondView({page, setPage, POuid}) {
     const auth = getAuth();
     const db = getFirestore();
     const user = auth.currentUser;
+    if(POuid === null && user===null)
+      return;
   
     const userId = user!==null ? user.uid : POuid[0];
     const dataToSave = {
@@ -293,12 +293,13 @@ export function SecondView({page, setPage, POuid}) {
                                 onMouseLeave={() => setHoveredSmell(null)}>
 
                                 <div className="smell-content">
-                                  <button onClick={() => updateEffort(serviceIndex, smellIndex, refactorIndex, -1)}>&lt;</button>
                                   <span className="refactor-text">
                                     {smellList.current[smell.smell].refactoring[refactorIndex]}
                                   </span>
-                                  <button onClick={() => updateEffort(serviceIndex, smellIndex, refactorIndex, 1)}>&gt;</button>
                                 </div>
+                                <button onClick={() => setServiceEdit([serviceIndex, smellIndex, refactorIndex, r.name, priority, effort])}>
+                                  <Icon icon="heroicons-solid:bars-3-bottom-left" />
+                                </button>
                                 <div className="service-name">{"Service: " + r.name}</div>
                                 {/*icone team affetti*/}
                                 <div className="team-icons">
@@ -342,9 +343,10 @@ export function SecondView({page, setPage, POuid}) {
             {undefinedEffortItems.map(({ serviceIndex, smellIndex, refactorIndex, r, smell, refact }, i) => (
               <div key={i} className="smell-box" style={{ backgroundColor: r.color }}>
                 <div className="smell-content">
-                  <button onClick={() => updateEffort(serviceIndex, smellIndex, refactorIndex, -1)}>&lt;</button>
                   <span className="refactor-text">{refact}</span>
-                  <button onClick={() => updateEffort(serviceIndex, smellIndex, refactorIndex, 1)}>&gt;</button>
+                  <button onClick={() => setServiceEdit([serviceIndex, smellIndex, refactorIndex, r.name, smell.impact, effort])}>
+                    <Icon icon="heroicons-solid:bars-3-bottom-left" />
+                  </button>
                 </div>
                 <div className="service-name">Service: {r.name}</div>
                 <div className="team-icons">
@@ -398,6 +400,28 @@ export function SecondView({page, setPage, POuid}) {
             <div className="confirm-buttons">
               <button className="confirm-button-yes" onClick={handleLogout}>Yes</button>
               <button className="confirm-button-no" onClick={() => setLogoutDialogOpen(false)}>No</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/*dialog di modifica effort nodo */}
+      {serviceEdit && (
+        <div className="confirm-dialog-overlay">
+          <div className="confirm-dialog" style={{position: "relative"}}>
+            <button className="service-button delete" onClick={()=>setServiceEdit(null)} style={{position: "absolute", top: "15px", right: "15px"}}>X</button>
+            <h2>{smellList.current[service[serviceEdit[0]].smellsInstances[serviceEdit[1]].smell].refactoring[serviceEdit[2]]}</h2>
+            <hr style={{width:"100%"}}/><br/>
+            <div style={{fontSize:"17px"}}>
+              <div><span className="label"><b>Service:</b></span> {serviceEdit[3]}</div><br/>
+              <div><span className="label"><b>Team:</b></span> {service[serviceEdit[0]].team}</div><br/>
+              <div><span className="label"><b>Urgency:</b></span> {serviceEdit[4]}</div><br/>
+              <div><span className="label"><b>Effort: </b>
+              <select className="custom-select" value={serviceEdit[5]} onChange={(e) => {updateEffort(e.target.value);serviceEdit[5]=e.target.value}}>
+                <option value="High effort">High effort</option>
+                <option value="Medium effort">Medium effort</option>
+                <option value="Low effort">Low effort</option>
+                <option value="To define">Not specified </option>
+              </select></span></div><br/>
             </div>
           </div>
         </div>

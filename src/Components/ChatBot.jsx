@@ -98,7 +98,6 @@ export function ChatBot({setPage, teamForChatBot,serviceForChatBot, POuid, tree}
       if(res) return res;
     }
 
-    //new service
     if(doc.match("(do|suggest|help)").found){
       //cerco team
       const matchedTeam = findTeamInText(text); 
@@ -108,7 +107,7 @@ export function ChatBot({setPage, teamForChatBot,serviceForChatBot, POuid, tree}
     }
 
     //new service
-    if(doc.match("(generate|create|make|new) (service|node)").found)
+    if(doc.match("(generate|create|make|new|add) (service|node)").found)
       return {intent: "generate", params: { field: "service"}};
 
     //remove service
@@ -116,7 +115,7 @@ export function ChatBot({setPage, teamForChatBot,serviceForChatBot, POuid, tree}
       return {intent: "remove_service", params: { field: "service"}};
 
     //new link
-    if(doc.match("(generate|create|make|new) (link|connection|bond|arc)").found)
+    if(doc.match("(generate|create|make|new|add) (link|connection|bond|arc)").found)
       return {intent: "link", params: { field: "link"}};
 
     //remove link
@@ -152,10 +151,11 @@ export function ChatBot({setPage, teamForChatBot,serviceForChatBot, POuid, tree}
 
       const urgency = ["medium to high", "low to medium", "none to Low", "high", "medium", "low", , "none"];
       const currUrgency = urgency.find(parola => textLower.includes(parola));
-      return {
-        intent: "set_filter",
-        params: { field: "urgency", value: currUrgency, operation: upTo? "range":"set" },
-      };
+      if(currUrgency!==undefined)
+        return {
+          intent: "set_filter",
+          params: { field: "urgency", value: currUrgency, operation: upTo? "range":"set" },
+        };
     }
 
     //voglio i refactor di un team

@@ -243,7 +243,9 @@ h2 {
 }
 
 .smell-box {
+  position: relative;
   padding: 10px;
+  min-width: 300px;
   margin: 5px;
   border-radius: 8px;
   text-align: center;
@@ -251,6 +253,9 @@ h2 {
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 .smell-box button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
   background-color: #007bff;
   color: #fff;
   border: 1px solid #000000;
@@ -262,9 +267,7 @@ h2 {
 }
 .smell-content {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 10px;
 }
 
 .undefined-effort-section {
@@ -912,3 +915,17 @@ input[type="file"] {
 .save-reminder-button:hover {
   background-color: #2563eb;
 }
+
+.custom-select {
+  flex: 2;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  font-size: 15px;
+  appearance: none;
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px 16px;
+}
+
