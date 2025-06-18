@@ -1,0 +1,226 @@
+{
+  "services": [
+    {
+      "key": 1747823967182,
+      "name": "Management Backend",
+      "y": 293,
+      "x": 523,
+      "relevance": "Medium",
+      "size": {
+        "width": 160,
+        "height": 196
+      },
+      "color": "hsl(299, 100%, 50%)",
+      "attributes": {
+        "Confidentiality": "Medium",
+        "Integrity": "Medium"
+      },
+      "team": "Customer",
+      "smellsInstances": [
+        {
+          "impact": "Medium",
+          "smell": "Insufficient Access Control",
+          "effort": {
+            "Use OAuth 2.0": "Medium effort"
+          }
+        },
+        {
+          "smell": "Unnecessary Privileges to Microservices",
+          "impact": "Medium",
+          "effort": {
+            "Follow the Least Privilege Principle": "Low effort"
+          }
+        }
+      ]
+    },
+    {
+      "color": "hsl(299, 100%, 50%)",
+      "smellsInstances": [
+        {
+          "impact": "None to Low",
+          "effort": {
+            "Use OAuth 2.0": "Medium effort"
+          },
+          "smell": "Insufficient Access Control"
+        }
+      ],
+      "attributes": {},
+      "key": 1747824027958,
+      "y": 149,
+      "relevance": "Low",
+      "size": {
+        "width": 160,
+        "height": 178
+      },
+      "team": "Customer",
+      "name": "Self-Service",
+      "x": 848
+    },
+    {
+      "color": "hsl(18, 100%, 50%)",
+      "size": {
+        "width": 160,
+        "height": 178
+      },
+      "name": "Database",
+      "smellsInstances": [
+        {
+          "effort": {
+            "Use OAuth 2.0": "High effort"
+          },
+          "impact": "Medium to High",
+          "smell": "Insufficient Access Control"
+        },
+        {
+          "effort": {
+            "Add an API Gateway": "To define"
+          },
+          "smell": "Publicly Accessible Microservices",
+          "impact": "Medium to High"
+        }
+      ],
+      "relevance": "High",
+      "y": 606,
+      "key": 1747824083038,
+      "x": 533,
+      "attributes": {
+        "Integrity": "High",
+        "Confidentiality": "Medium"
+      },
+      "team": "Database"
+    },
+    {
+      "name": "Policy Management",
+      "size": {
+        "width": 160,
+        "height": 178
+      },
+      "y": 190,
+      "color": "hsl(190, 100%, 50%)",
+      "relevance": "None",
+      "attributes": {
+        "Confidentiality": "Low"
+      },
+      "x": 1207,
+      "key": 1747824256862,
+      "smellsInstances": [
+        {
+          "effort": {
+            "Use OAuth 2.0": "Low effort"
+          },
+          "impact": "None to Low",
+          "smell": "Insufficient Access Control"
+        }
+      ],
+      "team": "Policy"
+    },
+    {
+      "relevance": "None",
+      "x": 1535,
+      "smellsInstances": [],
+      "name": "Policy Frontend",
+      "team": "Policy",
+      "color": "hsl(190, 100%, 50%)",
+      "y": 209,
+      "attributes": {},
+      "size": {
+        "width": 160,
+        "height": 178
+      },
+      "key": 1747824284391
+    },
+    {
+      "team": "Database",
+      "x": 973,
+      "name": "Admin",
+      "size": {
+        "width": 160,
+        "height": 160
+      },
+      "color": "hsl(18, 100%, 50%)",
+      "smellsInstances": [],
+      "attributes": {},
+      "relevance": "High",
+      "y": 528,
+      "key": 1747824322046
+    }
+  ],
+  "teamColors": {
+    "Customer": "hsl(299, 100%, 50%)",
+    "Policy": "hsl(190, 100%, 50%)",
+    "Database": "hsl(18, 100%, 50%)"
+  },
+  "arcs": [
+    {
+      "from": {
+        "name": "Self-Service",
+        "key": 1747824027958
+      },
+      "to": {
+        "name": "Management Backend",
+        "key": 1747823967182
+      }
+    },
+    {
+      "from": {
+        "name": "Management Backend",
+        "key": 1747823967182
+      },
+      "to": {
+        "name": "Database",
+        "key": 1747824083038
+      }
+    },
+    {
+      "from": {
+        "name": "Database",
+        "key": 1747824083038
+      },
+      "to": {
+        "name": "Management Backend",
+        "key": 1747823967182
+      }
+    },
+    {
+      "from": {
+        "name": "Self-Service",
+        "key": 1747824027958
+      },
+      "to": {
+        "name": "Policy Management",
+        "key": 1747824256862
+      }
+    },
+    {
+      "from": {
+        "name": "Policy Frontend",
+        "key": 1747824284391
+      },
+      "to": {
+        "name": "Policy Management",
+        "key": 1747824256862
+      }
+    },
+    {
+      "from": {
+        "name": "Admin",
+        "key": 1747824322046
+      },
+      "to": {
+        "name": "Policy Management",
+        "key": 1747824256862
+      }
+    },
+    {
+      "from": {
+        "name": "Admin",
+        "key": 1747824322046
+      },
+      "to": {
+        "name": "Database",
+        "key": 1747824083038
+      }
+    }
+  ],
+  "zoom": 1
+}
