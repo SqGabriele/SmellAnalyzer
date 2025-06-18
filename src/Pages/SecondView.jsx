@@ -192,10 +192,10 @@ export function SecondView({page, setPage, POuid}) {
         <div className="links">
           {/*solo se sono loggato*/}
           {auth.currentUser && 
-            <div> <Link to="/manageAccounts" style={{color:'#ffffff'}} state={{ data: updateData()}}> <Icon icon="heroicons-solid:user-plus" /></Link></div>}
-          <div><Link to="/graph" style={{color:'#ffffff'}} state={{ data: updateData()}}><Icon icon="heroicons-solid:rectangle-group" /></Link></div>
+            <div> <Link to="/manageAccounts" style={{color:'#ffffff'}} title="Manage Accounts" state={{ data: updateData()}}> <Icon icon="heroicons-solid:user-plus" /></Link></div>}
+          <div><Link to="/graph" style={{color:'#ffffff'}}  title="Edit Application" state={{ data: updateData()}}><Icon icon="heroicons-solid:rectangle-group" /></Link></div>
           <div style={{color:'#a0a0a0'}}><Icon icon="heroicons-solid:table-cells" /></div>
-          <div><Link to="/refactoring" style={{color:'#ffffff'}} state={{ data:  updateData()}}><Icon icon="heroicons-solid:magnifying-glass-plus" /></Link></div>
+          <div><Link to="/refactoring" style={{color:'#ffffff'}} state={{ data:  updateData()}} title="Show Refactoring"><Icon icon="heroicons-solid:magnifying-glass-plus" /></Link></div>
         </div>
         
         <div className="prospective-multi2">
@@ -344,7 +344,7 @@ export function SecondView({page, setPage, POuid}) {
               <div key={i} className="smell-box" style={{ backgroundColor: r.color }}>
                 <div className="smell-content">
                   <span className="refactor-text">{refact}</span>
-                  <button onClick={() => setServiceEdit([serviceIndex, smellIndex, refactorIndex, r.name, smell.impact, effort])}>
+                  <button onClick={() => setServiceEdit([serviceIndex, smellIndex, refactorIndex, r.name, smell.impact, "To define"])}>
                     <Icon icon="heroicons-solid:bars-3-bottom-left" />
                   </button>
                 </div>

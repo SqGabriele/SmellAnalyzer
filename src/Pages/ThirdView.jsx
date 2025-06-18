@@ -252,9 +252,9 @@ export function ThirdView({page, setPage, POuid, setTree, teamForChatBot}) {
                 <div className="links">
                     {/*solo se sono loggato*/}
                     {auth.currentUser && 
-                        <div> <Link to="/manageAccounts" style={{color:'#ffffff'}} state={{ data: data}}> <Icon icon="heroicons-solid:user-plus" /></Link></div>}
-                    <div><Link to="/graph" style={{color:'#ffffff'}} state={{ data: data}}><Icon icon="heroicons-solid:rectangle-group" /></Link></div>
-                    <div><Link to="/smellsPriority" style={{color:'#ffffff'}} state={{ data: data}}><Icon icon="heroicons-solid:table-cells" /></Link></div>
+                        <div> <Link to="/manageAccounts" style={{color:'#ffffff'}} title="Manage Accounts" state={{ data: data}}> <Icon icon="heroicons-solid:user-plus" /></Link></div>}
+                    <div ><Link to="/graph" style={{color:'#ffffff'}} title="Edit Application" state={{ data: data}}><Icon icon="heroicons-solid:rectangle-group" /></Link></div>
+                    <div><Link to="/smellsPriority" style={{color:'#ffffff'}} title="Select Effort" state={{ data: data}}><Icon icon="heroicons-solid:table-cells" /></Link></div>
                     <div style={{color:'#a0a0a0'}}><Icon icon="heroicons-solid:magnifying-glass-plus" /></div>
                 </div>
 

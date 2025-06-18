@@ -85,7 +85,7 @@ export function ChatBot({setPage, teamForChatBot,serviceForChatBot, POuid, tree}
     }
     if(POuid !== null && matchedService.team !== POuid[1])
       return "notmyteam";
-    return matchedService.name;
+    return matchedService?.name;
   }
 
   //interpreta i messaggi
@@ -107,19 +107,19 @@ export function ChatBot({setPage, teamForChatBot,serviceForChatBot, POuid, tree}
     }
 
     //new service
-    if(doc.match("(generate|create|make|new|add) (service|node)").found)
+    if(doc.match("(generate|create|make|new|add) [*] (service|node|microservice)").found)
       return {intent: "generate", params: { field: "service"}};
 
     //remove service
-    if(doc.match("(remove|delete|cancel|destroy) (service|node)").found)
+    if(doc.match("(remove|delete|cancel|destroy) [*] (service|node)").found)
       return {intent: "remove_service", params: { field: "service"}};
 
     //new link
-    if(doc.match("(generate|create|make|new|add) (link|connection|bond|arc)").found)
+    if(doc.match("(generate|create|make|new|add) [*] (link|connection|bond|arc)").found)
       return {intent: "link", params: { field: "link"}};
 
     //remove link
-    if(doc.match("(remove|delete|cancel|destroy) (link|connection|bond|arc)").found)
+    if(doc.match("(remove|delete|cancel|destroy) [*] (link|connection|bond|arc)").found)
       return {intent: "remove_link", params: { field: "link"}};
 
     //effort
@@ -186,7 +186,10 @@ export function ChatBot({setPage, teamForChatBot,serviceForChatBot, POuid, tree}
         return  { intent: "first_view", params: {field: "team", value: "all" }};
     }
 
-  return { intent: "unknown" };
+    if(doc.match("(generate|create|make|new|add)").found)
+      return {intent: "unknown", params: { field: "generate"}};
+
+  return { intent: "unknown", params: { field: "null"} };
   };
 
   //esegue la funzione
@@ -307,7 +310,7 @@ export function ChatBot({setPage, teamForChatBot,serviceForChatBot, POuid, tree}
             state.current = NewService3;
           }
           else{
-            message = '"'+params.value+'"? Okay. What team is he on?';
+            message = '"'+params.value+'"? Okay. What team is it on?';
             state.current = NewService2;
           } 
         }
@@ -417,7 +420,7 @@ export function ChatBot({setPage, teamForChatBot,serviceForChatBot, POuid, tree}
           doneAsync: true,
         };
         if(params.field === "link"){
-          message = "Want to remove a new link? Select the first service";
+          message = "Want to remove a link? Select the first service";
           state.current = RemoveLink1;
         }
         else if(params.field === "notmyteam"){
@@ -474,6 +477,8 @@ export function ChatBot({setPage, teamForChatBot,serviceForChatBot, POuid, tree}
           
         
       default:
+        if (params.field === "generate") 
+          return "Sorry, I don't understand. If you wish to generate a new service try with:"+'"Generate new service"';
         return "Sorry, I don't understand, try with: 'What should i do now?'";
     }
   };

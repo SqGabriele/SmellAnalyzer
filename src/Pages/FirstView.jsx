@@ -558,7 +558,6 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
     a.click();
     URL.revokeObjectURL(url);
   };
-  //console.log("height: " +services[0]?.size.height+" zoom: "+zoom )
   
   //salva in cloud
   const saveOnCloud = async() =>{
@@ -695,16 +694,16 @@ export function FirstView({page, setPage, teamForChatBot, serviceForChatBot, POu
         {/*Link alle altre viste */}
         <div className="links">
           {/*solo se sono loggato*/}
-          {auth.currentUser && <div onClick={() => handleClick("/manageAccounts")} style={{ cursor: "pointer", color: '#ffffff' }}>
+          {auth.currentUser && <div onClick={() => handleClick("/manageAccounts")} title="Manage Accounts" style={{ cursor: "pointer", color: '#ffffff' }}>
             <Icon icon="heroicons-solid:user-plus" />
           </div>}
           <div style={{ color: '#808080' }}>
             <Icon icon="heroicons-solid:rectangle-group" />
           </div>
-          <div onClick={() => handleClick("/smellsPriority")} style={{ cursor: "pointer", color: '#ffffff' }}>
+          <div onClick={() => handleClick("/smellsPriority")}  title="Select Effort" style={{ cursor: "pointer", color: '#ffffff' }}>
             <Icon icon="heroicons-solid:table-cells" />
           </div>
-          <div onClick={() => handleClick("/refactoring")} style={{ cursor: "pointer", color: '#ffffff' }}>
+          <div onClick={() => handleClick("/refactoring")} title="Show Refactoring" style={{ cursor: "pointer", color: '#ffffff' }}>
             <Icon icon="heroicons-solid:magnifying-glass-plus" />
           </div>
         </div>
